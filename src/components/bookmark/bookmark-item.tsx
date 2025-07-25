@@ -1,103 +1,24 @@
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { FileIcon } from 'lucide-react';
+import { useRef } from 'react';
 import { toast } from 'sonner';
 
-import { CommandItem, CommandShortcut } from '@/components/cmdk';
+import { BookmarkItemText } from '@/components/bookmark/bookmark-item-text';
+import { BookmarkItemUrl } from '@/components/bookmark/bookmark-item-url';
+import { MoveToGroupSub } from '@/components/bookmark/move-to-group';
+import { CommandItem } from '@/components/cmdk';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuGroup,
   ContextMenuItem,
   ContextMenuShortcut,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { useGroup } from '@/contexts/group-context';
-import { isValidWebColor } from '@/lib/color';
-import { getHostname } from '@/lib/url';
+import { useBookmark } from '@/contexts/bookmark-context';
+import { cn } from '@/lib/utils';
 import type { Bookmark } from '@/types';
-
-dayjs.extend(relativeTime);
-
-function getFaviconFromUrl(url: string, size: number) {
-  return `https://www.google.com/s2/favicons?domain=${url}&sz=${size}`;
-}
-
-function ListItemText({ content, createdAt }: Omit<Bookmark, 'type'>) {
-  const isColor = isValidWebColor(content);
-
-  return (
-    <>
-      {isColor ? (
-        <div className="size-4" style={{ backgroundColor: content }} />
-      ) : (
-        <FileIcon className="text-muted-foreground size-4" />
-      )}
-      <span className="max-w-xs truncate">{content}</span>
-      <CommandShortcut>
-        <Kbd className="w-8 not-in-data-[selected=true]:hidden">Ctrl</Kbd>
-        <Kbd className="not-in-data-[selected=true]:hidden">C</Kbd>
-      </CommandShortcut>
-      <time className="text-muted-foreground shrink-0 text-xs in-data-[selected=true]:hidden">
-        {dayjs(createdAt).fromNow()}
-      </time>
-    </>
-  );
-}
-
-function ListItemUrl({ title, content, createdAt }: Omit<Bookmark, 'type'>) {
-  return (
-    <>
-      <img
-        src={getFaviconFromUrl(content, 24)}
-        alt="Website's favicon"
-        className="size-4"
-      />
-      <span className="max-w-xs truncate">{title}</span>
-      <span className="text-muted-foreground max-w-64 truncate">
-        {getHostname(content)}
-      </span>
-      <CommandShortcut>
-        <Kbd className="w-8 not-in-data-[selected=true]:hidden">Ctrl</Kbd>
-        <Kbd className="not-in-data-[selected=true]:hidden">C</Kbd>
-      </CommandShortcut>
-      <time className="text-muted-foreground shrink-0 text-xs in-data-[selected=true]:hidden">
-        {dayjs(createdAt).fromNow()}
-      </time>
-    </>
-  );
-}
-
-function MoveToGroupSub() {
-  const { groups } = useGroup();
-
-  return (
-    <ContextMenuSub>
-      <ContextMenuSubTrigger>Move to</ContextMenuSubTrigger>
-      <ContextMenuSubContent>
-        {groups.map(({ id, name, color }, index) => (
-          <ContextMenuItem key={id}>
-            <div
-              className="size-4 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            {name}
-            <ContextMenuShortcut>
-              <Kbd>{index + 1}</Kbd>
-            </ContextMenuShortcut>
-          </ContextMenuItem>
-        ))}
-      </ContextMenuSubContent>
-    </ContextMenuSub>
-  );
-}
 
 interface BookmarkItemProps extends Bookmark {
   toggleDeleteDialog: () => void;
@@ -107,7 +28,10 @@ export function BookmarkItem({
   toggleDeleteDialog,
   ...props
 }: BookmarkItemProps) {
-  const Content = props.type === 'url' ? ListItemUrl : ListItemText;
+  const { selectedBookmark, isEditMode, setIsEditMode, setSelectedBookmark } =
+    useBookmark();
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleCopy = async () => {
     try {
@@ -123,15 +47,33 @@ export function BookmarkItem({
     toggleDeleteDialog();
   };
 
+  const onContextMenuOpenChange = (open: boolean) => {
+    if (open) setSelectedBookmark({ ...props });
+  };
+
+  const toggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+
+    if (!isEditMode) {
+      setTimeout(() => {
+        inputRef.current?.select();
+      }, 0);
+    }
+  };
+
+  const Content = props.type === 'url' ? BookmarkItemUrl : BookmarkItemText;
+
   return (
-    <ContextMenu>
-      <ContextMenuTrigger
-        render={({ onSelect: _onSelect, ...triggerProps }) => (
-          <CommandItem {...triggerProps}>
-            <Content {...props} />
-          </CommandItem>
-        )}
-      />
+    <ContextMenu modal={false} onOpenChange={onContextMenuOpenChange}>
+      <ContextMenuTrigger asChild>
+        <CommandItem
+          className={cn(
+            isEditMode && selectedBookmark?.id !== props.id && 'blur-xs'
+          )}
+        >
+          <Content inputRef={inputRef} {...props} />
+        </CommandItem>
+      </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuGroup>
           <ContextMenuItem onClick={handleCopy}>
@@ -140,7 +82,7 @@ export function BookmarkItem({
               <Kbd>C</Kbd>
             </ContextMenuShortcut>
           </ContextMenuItem>
-          <ContextMenuItem>
+          <ContextMenuItem onClick={toggleEditMode}>
             Edit
             <ContextMenuShortcut>
               <Kbd>E</Kbd>

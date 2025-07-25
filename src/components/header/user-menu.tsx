@@ -5,16 +5,17 @@ import {
   CircleQuestionMark,
   LogOutIcon
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Kbd } from '@/components/ui/kbd';
 import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuShortcut,
-  MenuTrigger
-} from '@/components/ui/menu';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Kbd } from '@/components/ui/kbd';
 import { authClient } from '@/lib/auth-client';
 
 interface UserMenuProps {
@@ -22,47 +23,47 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const router = useRouter();
+
   const handleLogOut = async () => {
-    await authClient.signOut();
+    await authClient.signOut().then(() => router.push('/'));
   };
 
   const username = user.email.split('@')[0] ?? '';
   const userImage = user.image ?? '';
 
   return (
-    <Menu>
-      <MenuTrigger
-        render={(props) => (
-          <Button size="sm" variant="ghost" {...props}>
-            <img
-              src={userImage}
-              alt="User profile picture"
-              className="size-5 rounded-full"
-            />
-            <span className="ml-1">{username}</span>
-            <ChevronsUpDownIcon
-              className="text-muted-foreground size-3"
-              strokeWidth={2.5}
-            />
-          </Button>
-        )}
-      />
-      <MenuContent align="end">
-        <MenuItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="ghost">
+          <img
+            src={userImage}
+            alt="User profile picture"
+            className="size-5 rounded-full"
+          />
+          <span className="ml-1">{username}</span>
+          <ChevronsUpDownIcon
+            className="text-muted-foreground size-3"
+            strokeWidth={2.5}
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>
           <CircleQuestionMark strokeWidth={2.5} />
           Help
-          <MenuShortcut>
+          <DropdownMenuShortcut>
             <Kbd>1</Kbd>
-          </MenuShortcut>
-        </MenuItem>
-        <MenuItem onClick={handleLogOut}>
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogOut} className="cursor-pointer">
           <LogOutIcon strokeWidth={2.5} />
           Log out
-          <MenuShortcut>
+          <DropdownMenuShortcut>
             <Kbd>2</Kbd>
-          </MenuShortcut>
-        </MenuItem>
-      </MenuContent>
-    </Menu>
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

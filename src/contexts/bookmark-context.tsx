@@ -6,7 +6,9 @@ import type { Bookmark } from '@/types';
 
 interface BookmarkContextProps {
   selectedBookmark: Bookmark | null;
+  isEditMode: boolean;
   setSelectedBookmark: React.Dispatch<React.SetStateAction<Bookmark | null>>;
+  setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface BookmarkProviderProps {
@@ -29,12 +31,15 @@ export function BookmarkProvider({ children }: BookmarkProviderProps) {
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(
     null
   );
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
   return (
     <BookmarkContext.Provider
       value={{
         selectedBookmark,
-        setSelectedBookmark
+        setSelectedBookmark,
+        isEditMode,
+        setIsEditMode
       }}
     >
       {children}

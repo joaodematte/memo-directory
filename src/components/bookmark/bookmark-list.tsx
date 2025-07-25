@@ -36,7 +36,6 @@ export function BookmarkList({ bookmarks, ...props }: BookmarkListProps) {
       <DeleteBookmarkDialog
         open={isDeleteBookmarkDialogOpen}
         onOpenChange={setIsDeleteBookmarkDialogOpen}
-        toggleDialog={toggleDeleteBookmarkDialog}
       />
     </CommandList>
   );

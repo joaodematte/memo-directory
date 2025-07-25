@@ -2,29 +2,23 @@ import { toast } from 'sonner';
 
 import {
   AlertDialog,
-  AlertDialogClose,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { useGroup } from '@/contexts/group-context';
 import { api } from '@/trpc/react';
 
-interface DeleteGroupDialogProps
-  extends React.ComponentProps<typeof AlertDialog> {
-  toggleDialog: () => void;
-}
-
-export function DeleteGroupDialog({
-  toggleDialog,
-  ...props
-}: DeleteGroupDialogProps) {
+export function DeleteGroupDialog(
+  props: React.ComponentProps<typeof AlertDialog>
+) {
   const trpcUtils = api.useUtils();
 
-  const { groups, selectedGroup, setSelectedGroup } = useGroup();
+  const { selectedGroup, setSelectedGroup } = useGroup();
 
   const { mutateAsync: deleteGroup, isPending } = api.group.delete.useMutation({
     onMutate: async (data) => {
@@ -32,16 +26,35 @@ export function DeleteGroupDialog({
 
       const previousGroups = trpcUtils.group.getAllByUser.getData();
 
-      if (!previousGroups) return;
+      if (!previousGroups) {
+        console.warn(
+          'No previous group data found in cache. Optimistic delete skipped.'
+        );
+
+        return { previousGroups };
+      }
 
       const updatedGroups = previousGroups.filter((gp) => gp.id !== data.id);
 
       trpcUtils.group.getAllByUser.setData(undefined, updatedGroups);
 
-      setSelectedGroup(groups[0]!);
-      toggleDialog();
+      setSelectedGroup(updatedGroups[0]!);
 
       toast.success('Group deleted');
+
+      return { previousGroups };
+    },
+    onError: (err, variables, context) => {
+      console.error(
+        `Group deletion failed for ID: ${variables.id}. Reverting optimistic changes.`,
+        err
+      );
+
+      if (context?.previousGroups) {
+        trpcUtils.group.getAllByUser.setData(undefined, context.previousGroups);
+      }
+
+      toast.error(`Failed to delete group: ${err.message || 'Unknown error'}`);
     },
     onSettled: async () => {
       await trpcUtils.group.getAllByUser.invalidate();
@@ -63,22 +76,10 @@ export function DeleteGroupDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogClose
-            render={(props) => (
-              <Button {...props} size="sm" variant="ghost" disabled={isPending}>
-                Cancel
-              </Button>
-            )}
-          />
-
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isPending}
-          >
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={isPending} onClick={handleDelete}>
             Delete
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

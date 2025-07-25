@@ -11,23 +11,26 @@ import { useState } from 'react';
 import { CreateGroupDialog } from '@/components/header/create-group-dialog';
 import { DeleteGroupDialog } from '@/components/header/delete-group-dialog';
 import { Button } from '@/components/ui/button';
-import { Kbd } from '@/components/ui/kbd';
 import {
-  Menu,
-  MenuContent,
-  MenuGroup,
-  MenuItem,
-  MenuLabel,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSeparator,
-  MenuShortcut,
-  MenuTrigger
-} from '@/components/ui/menu';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Kbd } from '@/components/ui/kbd';
 import { useGroup } from '@/contexts/group-context';
 import { api } from '@/trpc/react';
 
-type GroupsMenuProps = Omit<React.ComponentProps<typeof Menu>, 'children'>;
+type GroupsMenuProps = Omit<
+  React.ComponentProps<typeof DropdownMenu>,
+  'children'
+>;
 
 export function GroupsMenu(props: GroupsMenuProps) {
   const trpcUtils = api.useUtils();
@@ -56,37 +59,34 @@ export function GroupsMenu(props: GroupsMenuProps) {
   };
 
   return (
-    <Menu {...props}>
-      <MenuTrigger
-        render={(props) => (
-          <Button size="sm" variant="ghost" {...props}>
-            <div
-              className="size-2 rounded-full"
-              style={{
-                backgroundColor: selectedGroup.color
-              }}
-            />
-            <span className="ml-1">{selectedGroup.name}</span>
-            <ChevronsUpDownIcon
-              className="text-muted-foreground size-3"
-              strokeWidth={2.5}
-            />
-          </Button>
-        )}
-      />
-      <MenuContent align="start">
-        <MenuGroup>
-          <MenuLabel>Groups</MenuLabel>
-          <MenuRadioGroup
+    <DropdownMenu {...props}>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="ghost" {...props}>
+          <div
+            className="size-2 rounded-full"
+            style={{
+              backgroundColor: selectedGroup.color
+            }}
+          />
+          <span className="ml-1">{selectedGroup.name}</span>
+          <ChevronsUpDownIcon
+            className="text-muted-foreground size-3"
+            strokeWidth={2.5}
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Groups</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
             value={selectedGroup.id}
             onValueChange={onGroupValueChange}
           >
             {groups.map(({ id, name, color }, index) => (
-              <MenuRadioItem
+              <DropdownMenuRadioItem
                 key={id}
                 value={id}
                 shouldRenderIndicator={false}
-                closeOnClick
                 className="group"
                 onMouseEnter={() => onMouseEnter(id)}
               >
@@ -95,36 +95,38 @@ export function GroupsMenu(props: GroupsMenuProps) {
                   style={{ backgroundColor: color }}
                 />
                 <span>{name}</span>
-                <MenuShortcut>
-                  <Kbd className="group-data-checked:hidden">{index + 1}</Kbd>
+                <DropdownMenuShortcut>
+                  <Kbd className="group-data-[state=checked]:hidden">
+                    {index + 1}
+                  </Kbd>
                   <CheckIcon
-                    className="not-group-data-checked:hidden"
+                    className="not-group-data-[state=checked]:hidden"
                     strokeWidth={2.5}
                   />
-                </MenuShortcut>
-              </MenuRadioItem>
+                </DropdownMenuShortcut>
+              </DropdownMenuRadioItem>
             ))}
-          </MenuRadioGroup>
-        </MenuGroup>
-        <MenuSeparator />
-        <MenuGroup>
-          <MenuLabel>Actions</MenuLabel>
-          <MenuItem onClick={toggleCreateDialog}>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={toggleCreateDialog}>
             <CirclePlusIcon strokeWidth={2.5} />
             <span>Create Group</span>
-            <MenuShortcut>
+            <DropdownMenuShortcut>
               <Kbd>C</Kbd>
-            </MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={toggleDeleteDialog}>
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={toggleDeleteDialog}>
             <TrashIcon strokeWidth={2.5} />
             <span>Delete Group</span>
-            <MenuShortcut>
+            <DropdownMenuShortcut>
               <Kbd>D</Kbd>
-            </MenuShortcut>
-          </MenuItem>
-        </MenuGroup>
-      </MenuContent>
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
 
       <CreateGroupDialog
         open={isCreateDialogOpen}
@@ -134,8 +136,7 @@ export function GroupsMenu(props: GroupsMenuProps) {
       <DeleteGroupDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        toggleDialog={toggleDeleteDialog}
       />
-    </Menu>
+    </DropdownMenu>
   );
 }

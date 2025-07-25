@@ -2,27 +2,21 @@ import { toast } from 'sonner';
 
 import {
   AlertDialog,
-  AlertDialogClose,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { api } from '@/trpc/react';
 
-interface DeleteBookmarkDialogProps
-  extends React.ComponentProps<typeof AlertDialog> {
-  toggleDialog: () => void;
-}
-
-export function DeleteBookmarkDialog({
-  toggleDialog,
-  ...props
-}: DeleteBookmarkDialogProps) {
+export function DeleteBookmarkDialog(
+  props: React.ComponentProps<typeof AlertDialog>
+) {
   const trpcUtils = api.useUtils();
 
   const { selectedGroup } = useGroup();
@@ -39,7 +33,13 @@ export function DeleteBookmarkDialog({
           groupId: selectedGroup.id
         });
 
-        if (!previousBookmarks) return;
+        if (!previousBookmarks) {
+          console.warn(
+            'No previous bookmark data found in cache. Optimistic delete skipped.'
+          );
+
+          return { previousBookmarks };
+        }
 
         const updatedBookmarks = previousBookmarks.filter(
           (bk) => bk.id !== data.id
@@ -52,9 +52,26 @@ export function DeleteBookmarkDialog({
           updatedBookmarks
         );
 
-        toggleDialog();
-
         toast.success('Bookmark deleted');
+
+        return { previousBookmarks };
+      },
+      onError: (err, variables, context) => {
+        console.error(
+          `Bookmark deletion failed for ID: ${variables.id}. Reverting optimistic changes.`,
+          err
+        );
+
+        if (context?.previousBookmarks) {
+          trpcUtils.bookmark.getAllByGroup.setData(
+            { groupId: selectedGroup.id },
+            context.previousBookmarks
+          );
+        }
+
+        toast.error(
+          `Failed to delete bookmark: ${err.message || 'Unknown error'}`
+        );
       },
       onSettled: async () => {
         await trpcUtils.group.getAllByUser.invalidate();
@@ -78,22 +95,11 @@ export function DeleteBookmarkDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogClose
-            render={(props) => (
-              <Button {...props} size="sm" variant="ghost" disabled={isPending}>
-                Cancel
-              </Button>
-            )}
-          />
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
 
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isPending}
-          >
+          <AlertDialogAction disabled={isPending} onClick={handleDelete}>
             Delete
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -6,17 +6,10 @@ import { PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { v7 as uuidv7 } from 'uuid';
 
-import { BookmarkItem } from '@/components/bookmark/bookmark-item';
 import { BookmarkList } from '@/components/bookmark/bookmark-list';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandList
-} from '@/components/cmdk';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Command, CommandInput } from '@/components/cmdk';
 import { Separator } from '@/components/ui/separator';
+import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { authClient } from '@/lib/auth-client';
 import { isValidURL } from '@/lib/url';
@@ -25,11 +18,13 @@ import { api } from '@/trpc/react';
 
 export function MainContent() {
   const trpcUtils = api.useUtils();
+
   const { data: sessionData } = authClient.useSession();
 
   const { selectedGroup } = useGroup();
 
   const [inputValue, setInputValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = useState<string>('');
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,23 +42,44 @@ export function MainContent() {
         groupId: selectedGroup.id
       });
 
-      if (!previousBookmarks || !sessionData) return;
+      if (!previousBookmarks || !sessionData) {
+        console.warn(
+          'No previous bookmark data or session data found in cache. Optimistic create skipped.'
+        );
+
+        return { previousBookmarks };
+      }
+
+      const newBookmark = {
+        id: uuidv7(),
+        type: data.type,
+        title: data.content,
+        content: data.content,
+        userId: sessionData.user.id,
+        groupId: selectedGroup.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
       trpcUtils.bookmark.getAllByGroup.setData({ groupId: selectedGroup.id }, [
-        {
-          id: uuidv7(),
-          type: data.type,
-          title: data.content,
-          content: data.content,
-          userId: sessionData.user.id,
-          groupId: selectedGroup.id,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
+        newBookmark,
         ...previousBookmarks
       ]);
 
-      return { previousBookmarks };
+      return { previousBookmarks, newBookmarkTempId: newBookmark.id };
+    },
+    onError: (err, variables, context) => {
+      console.error(
+        `Bookmark creation failed for content: ${variables.content}. Reverting optimistic changes.`,
+        err
+      );
+
+      if (context?.previousBookmarks) {
+        trpcUtils.bookmark.getAllByGroup.setData(
+          { groupId: selectedGroup.id },
+          context.previousBookmarks
+        );
+      }
     },
     onSettled: async () => {
       await trpcUtils.bookmark.getAllByGroup.invalidate({
@@ -121,9 +137,18 @@ export function MainContent() {
     };
   }, []);
 
+  const onValueChange = (value: string) => {
+    setSelectedValue(value);
+  };
+
   return (
     <div className="my-24">
-      <Command shouldFilter={false} loop>
+      <Command
+        value={selectedValue}
+        onValueChange={onValueChange}
+        shouldFilter={false}
+        loop
+      >
         <CommandInput
           ref={inputRef}
           placeholder="Insert an URL, color code or just plain text..."

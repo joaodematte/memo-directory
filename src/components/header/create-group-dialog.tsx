@@ -14,13 +14,9 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import {
-  Field,
-  FieldControl,
-  FieldDescription,
-  FieldLabel
-} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
+import { Label } from '@/components/ui/label';
 import { useGroup } from '@/contexts/group-context';
 import { authClient } from '@/lib/auth-client';
 import { api } from '@/trpc/react';
@@ -40,7 +36,7 @@ export function CreateGroupDialog({
 }: CreateGroupDialogProps) {
   const trpcUtils = api.useUtils();
 
-  const { data: authData } = authClient.useSession();
+  const { data: sessionData } = authClient.useSession();
   const { setSelectedGroup } = useGroup();
 
   const { mutateAsync: createGroup, isPending } = api.group.create.useMutation({
@@ -49,13 +45,18 @@ export function CreateGroupDialog({
 
       const previousGroups = trpcUtils.group.getAllByUser.getData();
 
-      if (!previousGroups || !authData) return;
+      if (!previousGroups || !sessionData) {
+        console.warn(
+          'No previous group data or session data found in cache. Optimistic delete skipped.'
+        );
 
+        return { previousGroups };
+      }
       const newGroup = {
         id: uuidv7(),
         name: data.name,
         color: data.color,
-        userId: authData.user.id,
+        userId: sessionData.user.id,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -65,11 +66,27 @@ export function CreateGroupDialog({
         newGroup
       ]);
 
+      console.log(data);
+
       setSelectedGroup(newGroup);
       toggleDialog();
       form.reset();
 
       toast.success('Group created');
+
+      return { previousGroups, newGroupTempId: newGroup.id };
+    },
+    onError: (err, variables, context) => {
+      console.error(
+        `Group creation failed for name: ${variables.name}. Reverting optimistic changes.`,
+        err
+      );
+
+      if (context?.previousGroups) {
+        trpcUtils.group.getAllByUser.setData(undefined, context.previousGroups);
+      }
+
+      toast.error(`Failed to create group: ${err.message || 'Unknown error'}`);
     },
     onSettled: async () => {
       await trpcUtils.group.getAllByUser.invalidate();
@@ -97,66 +114,60 @@ export function CreateGroupDialog({
 
   return (
     <Dialog {...props}>
-      <DialogContent
-        render={(props) => <form onSubmit={handleFormSubmit} {...props} />}
-      >
-        <DialogHeader>
-          <DialogTitle>Create Group</DialogTitle>
-          <DialogDescription>
-            Create a new group here to separate your bookmarks.
-            <br />
-            Click confirm when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <form.Field name="name">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                <FieldControl
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="color">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Color</FieldLabel>
-                <FieldControl
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                <FieldDescription>
-                  You can&apos;t change it later.
-                </FieldDescription>
-                <HexColorPicker
-                  style={{ width: '100%' }}
-                  color={field.state.value}
-                  onChange={(color) => field.handleChange(color)}
-                />
-              </Field>
-            )}
-          </form.Field>
-        </div>
-        <DialogFooter>
-          <DialogClose
-            disabled={isPending}
-            render={(props) => (
-              <Button variant="ghost" {...props}>
+      <DialogContent>
+        <form onSubmit={handleFormSubmit} className="grid gap-4">
+          <DialogHeader>
+            <DialogTitle>Create Group</DialogTitle>
+            <DialogDescription>
+              Create a new group here to separate your bookmarks.
+              <br />
+              Click confirm when you&apos;re done.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <form.Field name="name">
+              {(field) => (
+                <div className="grid gap-2">
+                  <Label htmlFor={field.name}>Name</Label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="color">
+              {(field) => (
+                <div className="grid gap-2">
+                  <Label htmlFor={field.name}>Color</Label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  <HexColorPicker
+                    style={{ width: '100%' }}
+                    color={field.state.value}
+                    onChange={(color) => field.handleChange(color)}
+                  />
+                </div>
+              )}
+            </form.Field>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="ghost">
                 Close
                 <Kbd className="w-8">Esc</Kbd>
               </Button>
-            )}
-          />
+            </DialogClose>
 
-          <Button disabled={isPending}>Confirm</Button>
-        </DialogFooter>
+            <Button disabled={isPending}>Confirm</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
