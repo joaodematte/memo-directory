@@ -1,4 +1,3 @@
-import type { inferProcedureInput } from '@trpc/server';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { FileIcon } from 'lucide-react';
@@ -10,7 +9,6 @@ import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { useUpdateBookmarkMutation } from '@/hooks/use-update-bookmark-mutation';
 import { isValidWebColor } from '@/lib/color';
-import type { AppRouter } from '@/server/api/root';
 import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);

@@ -9,7 +9,6 @@ import { v7 as uuidv7 } from 'uuid';
 import { BookmarkList } from '@/components/bookmark/bookmark-list';
 import { Command, CommandInput } from '@/components/cmdk';
 import { Separator } from '@/components/ui/separator';
-import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { authClient } from '@/lib/auth-client';
 import { isValidURL } from '@/lib/url';

@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import type { inferProcedureInput } from '@trpc/server';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useState } from 'react';
@@ -10,7 +9,6 @@ import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { useUpdateBookmarkMutation } from '@/hooks/use-update-bookmark-mutation';
 import { getHostname } from '@/lib/url';
-import type { AppRouter } from '@/server/api/root';
 import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);
