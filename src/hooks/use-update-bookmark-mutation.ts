@@ -1,7 +1,8 @@
+import { toast } from 'sonner';
+
 import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { api } from '@/trpc/react';
-import type { Bookmark } from '@/types';
 
 export function useUpdateBookmarkMutation() {
   const trpcUtils = api.useUtils();
@@ -11,52 +12,28 @@ export function useUpdateBookmarkMutation() {
 
   return api.bookmark.update.useMutation({
     onMutate: async (data) => {
-      const previousSelectedGroupBookmarks =
-        trpcUtils.bookmark.getAllByGroup.getData({
-          groupId: selectedGroup.id
-        });
+      const previousBookmarks = trpcUtils.bookmark.getAllByGroup.getData({
+        groupId: selectedGroup.id
+      });
 
-      const isGroupChanging = data.groupId !== selectedGroup.id;
-
-      let previousTargetGroupBookmarks: Bookmark[] | undefined;
-      if (isGroupChanging) {
-        previousTargetGroupBookmarks = trpcUtils.bookmark.getAllByGroup.getData(
-          {
-            groupId: data.groupId
-          }
-        );
+      if (!previousBookmarks) {
+        console.warn('No bookmarks cache found. Optimistic update skypped.');
+        return { previousBookmarks };
       }
 
-      const promises = [
-        trpcUtils.bookmark.getAllByGroup.cancel({ groupId: selectedGroup.id })
-      ];
+      await trpcUtils.bookmark.getAllByGroup.cancel({
+        groupId: selectedGroup.id
+      });
 
-      if (isGroupChanging) {
-        promises.push(
-          trpcUtils.bookmark.getAllByGroup.cancel({ groupId: data.groupId })
-        );
-      }
-
-      await Promise.all(promises);
-
-      const bookmarkToUpdate = previousSelectedGroupBookmarks?.find(
-        (b) => b.id === data.id
-      );
+      const bookmarkToUpdate = previousBookmarks.find((b) => b.id === data.id);
 
       if (!bookmarkToUpdate) {
         console.warn(
           'No target bookmark data found in cache. Optimistic delete skipped.'
         );
 
-        return { previousSelectedGroupBookmarks, previousTargetGroupBookmarks };
+        return { previousBookmarks };
       }
-
-      trpcUtils.bookmark.getAllByGroup.setData(
-        { groupId: selectedGroup.id },
-        (oldCacheData) => {
-          return oldCacheData?.filter((b) => b.id !== data.id) ?? [];
-        }
-      );
 
       const updatedBookmark = {
         ...bookmarkToUpdate,
@@ -66,56 +43,30 @@ export function useUpdateBookmarkMutation() {
         ...(data.content !== undefined && { content: data.content })
       };
 
-      if (isGroupChanging) {
-        trpcUtils.bookmark.getAllByGroup.setData(
-          { groupId: data.groupId },
-          (oldTargetCacheData) => {
-            return oldTargetCacheData
-              ? [...oldTargetCacheData, updatedBookmark]
-              : [updatedBookmark];
-          }
-        );
-      } else {
-        trpcUtils.bookmark.getAllByGroup.setData(
-          { groupId: selectedGroup.id },
-          (oldCacheData) =>
-            oldCacheData?.map((b) => {
-              if (b.id === data.id) {
-                return {
-                  ...b,
-                  ...(data.title !== undefined && { title: data.title }),
-                  ...(data.content !== undefined && { content: data.content })
-                };
-              }
-              return b;
-            }) ?? []
-        );
-      }
+      trpcUtils.bookmark.getAllByGroup.setData(
+        { groupId: selectedGroup.id },
+        previousBookmarks.map((bk) => {
+          if (bk.id === updatedBookmark.id) return updatedBookmark;
+
+          return bk;
+        })
+      );
 
       setIsEditMode(false);
+      toast.success('Bookmark updated');
 
-      return { previousSelectedGroupBookmarks, previousTargetGroupBookmarks };
+      return { previousBookmarks };
     },
-    onError: (err, newBookmarkData, context) => {
+    onError: (err, _newBookmarkData, context) => {
       console.error(
         'Bookmark update failed, reverting optimistic changes:',
         err
       );
 
-      if (context?.previousSelectedGroupBookmarks) {
+      if (context?.previousBookmarks) {
         trpcUtils.bookmark.getAllByGroup.setData(
           { groupId: selectedGroup.id },
-          context.previousSelectedGroupBookmarks
-        );
-      }
-
-      if (
-        newBookmarkData.groupId !== selectedGroup.id &&
-        context?.previousTargetGroupBookmarks !== undefined
-      ) {
-        trpcUtils.bookmark.getAllByGroup.setData(
-          { groupId: newBookmarkData.groupId },
-          context.previousTargetGroupBookmarks
+          context.previousBookmarks
         );
       }
     },

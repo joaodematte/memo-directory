@@ -1,12 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
-import { toast } from 'sonner';
+import React, { useRef, useState } from 'react';
 
 import { BookmarkItemText } from '@/components/bookmark/bookmark-item-text';
 import { BookmarkItemUrl } from '@/components/bookmark/bookmark-item-url';
 import { MoveToGroupSub } from '@/components/bookmark/move-to-group';
-import { CommandItem } from '@/components/cmdk';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -21,23 +19,41 @@ import { cn } from '@/lib/utils';
 import type { Bookmark } from '@/types';
 
 interface BookmarkItemProps extends Bookmark {
+  index: number;
+  ref: (el: HTMLButtonElement) => void;
   toggleDeleteDialog: () => void;
+  setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export function BookmarkItem({
+  index,
+  ref,
   toggleDeleteDialog,
+  setActiveIndex,
   ...props
 }: BookmarkItemProps) {
   const { selectedBookmark, isEditMode, setIsEditMode, setSelectedBookmark } =
     useBookmark();
 
+  const [hasCopied, setHasCopied] = useState<boolean>(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(props.content);
 
-      toast.success('Content copied');
+      setHasCopied(true);
+
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+
+      copyTimeoutRef.current = setTimeout(() => {
+        setHasCopied(false);
+        copyTimeoutRef.current = null;
+      }, 3000);
     } catch {
       console.error('Unable to write to clipboard');
     }
@@ -61,18 +77,31 @@ export function BookmarkItem({
     }
   };
 
+  const handleFocus = () => {
+    setActiveIndex(index);
+  };
+
+  const isEditing = isEditMode && selectedBookmark?.id === props.id;
   const Content = props.type === 'url' ? BookmarkItemUrl : BookmarkItemText;
 
   return (
     <ContextMenu modal={false} onOpenChange={onContextMenuOpenChange}>
       <ContextMenuTrigger asChild>
-        <CommandItem
+        <Content
+          ref={ref}
+          id={props.id}
           className={cn(
-            isEditMode && selectedBookmark?.id !== props.id && 'blur-xs'
+            'group flex w-full items-center gap-4 rounded-md px-4 py-2',
+            'hover:bg-accent',
+            'focus-visible:bg-accent focus-visible:outline-none',
+            'data-[state=open]:bg-accent',
+            isEditing && 'bg-accent'
           )}
-        >
-          <Content inputRef={inputRef} {...props} />
-        </CommandItem>
+          inputRef={inputRef}
+          hasCopied={hasCopied}
+          bookmark={{ ...props }}
+          onFocus={handleFocus}
+        />
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuGroup>

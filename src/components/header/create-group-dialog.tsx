@@ -106,8 +106,8 @@ export function CreateGroupDialog({
     }
   });
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     await form.handleSubmit();
   };

@@ -2,15 +2,16 @@
 'use client';
 
 import type { inferProcedureInput } from '@trpc/server';
-import { PlusIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { v7 as uuidv7 } from 'uuid';
 
 import { BookmarkList } from '@/components/bookmark/bookmark-list';
-import { Command, CommandInput } from '@/components/cmdk';
-import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { useGroup } from '@/contexts/group-context';
 import { authClient } from '@/lib/auth-client';
+import { KeyboardManager } from '@/lib/keyboard-manager';
+import { ShortcutManager } from '@/lib/shortcut-manager';
 import { isValidURL } from '@/lib/url';
 import type { AppRouter } from '@/server/api/root';
 import { api } from '@/trpc/react';
@@ -23,13 +24,8 @@ export function MainContent() {
   const { selectedGroup } = useGroup();
 
   const [inputValue, setInputValue] = useState<string>('');
-  const [selectedValue, setSelectedValue] = useState<string>('');
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const { data: bookmarks } = api.bookmark.getAllByGroup.useQuery({
-    groupId: selectedGroup.id
-  });
 
   const { mutateAsync: createBookmark } = api.bookmark.create.useMutation({
     onMutate: async (data) => {
@@ -65,6 +61,10 @@ export function MainContent() {
         ...previousBookmarks
       ]);
 
+      setInputValue('');
+
+      toast.success('Bookmark created');
+
       return { previousBookmarks, newBookmarkTempId: newBookmark.id };
     },
     onError: (err, variables, context) => {
@@ -87,8 +87,14 @@ export function MainContent() {
     }
   });
 
-  const handleInputKeyDown = async (e: React.KeyboardEvent) => {
-    if (e.key !== 'Enter') return;
+  const handleInputOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleInputKeyDown = async (event: React.KeyboardEvent) => {
+    if (!KeyboardManager.isEnterKey(event)) return;
+
+    event.preventDefault();
 
     const trimmedValue = inputValue.trim();
 
@@ -107,21 +113,24 @@ export function MainContent() {
     await createBookmark(values);
   };
 
-  const handleDocumentKeyDown = async (e: KeyboardEvent) => {
+  const handleDocumentKeyDown = async (event: KeyboardEvent) => {
+    if (ShortcutManager.isFocusInputShortcut(event)) {
+      event.preventDefault();
+      inputRef.current?.focus();
+      return;
+    }
+
     if (
-      e.ctrlKey &&
-      e.key == 'v' &&
+      ShortcutManager.isPasteShortcut(event) &&
       document.activeElement !== inputRef.current
     ) {
-      e.preventDefault();
+      event.preventDefault();
 
       try {
-        const toPaste = await navigator.clipboard.readText();
+        const textToPaste = await navigator.clipboard.readText();
 
-        setInputValue(toPaste.trim());
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 0);
+        setInputValue(textToPaste.trim());
+        inputRef.current?.focus();
       } catch {
         console.error('Unable to read clipboard');
       }
@@ -136,37 +145,27 @@ export function MainContent() {
     };
   }, []);
 
-  const onValueChange = (value: string) => {
-    setSelectedValue(value);
-  };
-
   return (
     <div className="my-24">
-      <Command
-        value={selectedValue}
-        onValueChange={onValueChange}
-        shouldFilter={false}
-        loop
-      >
-        <CommandInput
+      <div className="px-4">
+        <Input
           ref={inputRef}
-          placeholder="Insert an URL, color code or just plain text..."
-          leadingIcon={<PlusIcon />}
-          inputContainerClassName="px-4"
           value={inputValue}
-          onValueChange={setInputValue}
+          onChange={handleInputOnChange}
           onKeyDown={handleInputKeyDown}
-          autoFocus
+          placeholder="Paste a URL, color code or just plain text..."
+          className="h-10 text-sm"
         />
-        <div className="mt-6 mb-1 flex h-6 w-full flex-col justify-between px-4">
-          <div className="flex w-full justify-between">
-            <span className="text-muted-foreground text-xs">Title</span>
-            <span className="text-muted-foreground text-xs">Created at</span>
+
+        <div className="mt-6 mb-1 flex h-8 w-full flex-col border-b">
+          <div className="text-muted-foreground flex w-full items-center justify-between text-xs font-medium">
+            <span>Title</span>
+            <span>Created at</span>
           </div>
-          <Separator />
         </div>
-        <BookmarkList bookmarks={bookmarks} />
-      </Command>
+      </div>
+
+      <BookmarkList />
     </div>
   );
 }

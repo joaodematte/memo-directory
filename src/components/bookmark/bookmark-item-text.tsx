@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { FileIcon } from 'lucide-react';
-import { useState } from 'react';
+import { CheckIcon, FileIcon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
 
 import { CommandShortcut } from '@/components/cmdk';
 import { Kbd } from '@/components/ui/kbd';
@@ -9,76 +9,108 @@ import { useBookmark } from '@/contexts/bookmark-context';
 import { useGroup } from '@/contexts/group-context';
 import { useUpdateBookmarkMutation } from '@/hooks/use-update-bookmark-mutation';
 import { isValidWebColor } from '@/lib/color';
+import { KeyboardManager } from '@/lib/keyboard-manager';
 import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);
 
-interface BookmarkItemTextProps extends Bookmark {
+interface BookmarkItemTextProps extends React.ComponentProps<'button'> {
+  hasCopied: boolean;
+  bookmark: Bookmark;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function BookmarkItemText({
-  id,
-  content,
-  createdAt,
-  inputRef
+  bookmark,
+  hasCopied,
+  inputRef,
+  ...props
 }: BookmarkItemTextProps) {
   const { selectedGroup } = useGroup();
-  const { selectedBookmark, isEditMode } = useBookmark();
+  const { selectedBookmark, isEditMode, setIsEditMode } = useBookmark();
 
-  const [inputValue, setInputValue] = useState<string>(content);
+  const [inputValue, setInputValue] = useState<string>(bookmark.content);
+
+  const lastInputValueRef = useRef<string>(bookmark.content);
 
   const { mutateAsync: updateBookmark } = useUpdateBookmarkMutation();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
   };
 
-  const handleInputOnKeyDown = async (e: React.KeyboardEvent) => {
+  const handleInputOnKeyDown = async (event: React.KeyboardEvent) => {
     const trimmedValue = inputValue.trim();
 
-    if (
-      e.key !== 'Enter' ||
-      trimmedValue === '' ||
-      document.activeElement !== inputRef.current
-    )
+    if (KeyboardManager.isEscKey(event)) {
+      event.preventDefault();
+      clearEdits();
       return;
+    }
 
-    await updateBookmark({
-      id,
-      content: inputValue,
-      groupId: selectedGroup.id
-    });
+    if (
+      KeyboardManager.isEnterKey(event) &&
+      trimmedValue !== '' &&
+      document.activeElement === inputRef.current
+    ) {
+      event.preventDefault();
+      await updateBookmark({
+        id: bookmark.id,
+        content: inputValue,
+        groupId: selectedGroup.id
+      }).then(() => {
+        lastInputValueRef.current = trimmedValue;
+      });
+      return;
+    }
   };
 
+  const clearEdits = () => {
+    setInputValue(lastInputValueRef.current);
+    setIsEditMode(false);
+  };
+
+  const handleOnBlur = () => {
+    if (isEditMode) return;
+
+    clearEdits();
+  };
+
+  const isEditing = isEditMode && selectedBookmark?.id === bookmark.id;
   const isColor = isValidWebColor(inputValue);
-  const isEditing = isEditMode && selectedBookmark?.id === id;
 
   return (
-    <>
-      {isColor ? (
-        <div className="size-4" style={{ backgroundColor: inputValue }} />
+    <button onBlur={handleOnBlur} {...props}>
+      {hasCopied ? (
+        <CheckIcon className="text-muted-foreground size-4" />
+      ) : isColor ? (
+        <div
+          className="size-4 rounded-full"
+          style={{ backgroundColor: inputValue }}
+        />
       ) : (
         <FileIcon className="text-muted-foreground size-4" />
       )}
-      {isEditing ? (
+      {hasCopied ? (
+        <span className="text-sm">Copied</span>
+      ) : isEditing ? (
         <input
           ref={inputRef}
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleInputOnKeyDown}
-          className="field-sizing-content max-w-xs truncate outline-none"
+          className="field-sizing-content max-w-xs truncate text-sm outline-none"
         />
       ) : (
-        <span className="max-w-xs truncate">{inputValue}</span>
+        <span className="max-w-xs truncate text-sm">{inputValue}</span>
       )}
-      <CommandShortcut>
-        <Kbd className="w-8 not-in-data-[selected=true]:hidden">Ctrl</Kbd>
-        <Kbd className="not-in-data-[selected=true]:hidden">C</Kbd>
+      <CommandShortcut className="ml-auto not-group-focus-visible:hidden">
+        <Kbd className="w-8">Ctrl</Kbd>
+        <Kbd>C</Kbd>
       </CommandShortcut>
-      <time className="text-muted-foreground shrink-0 text-xs in-data-[selected=true]:hidden">
-        {dayjs(createdAt).fromNow()}
+      <time className="text-muted-foreground ml-auto shrink-0 text-xs group-focus-visible:hidden">
+        {dayjs(bookmark.createdAt).fromNow()}
       </time>
-    </>
+    </button>
   );
 }
