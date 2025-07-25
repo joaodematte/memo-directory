@@ -44,4 +44,11 @@ export class KeyboardManager {
       (event.code.startsWith('Numpad') && event.key >= '0' && event.key <= '9')
     );
   }
+
+  public static isKey<T>(
+    event: KeyboardEvent | React.KeyboardEvent<T>,
+    key: string
+  ) {
+    return event.key === key;
+  }
 }

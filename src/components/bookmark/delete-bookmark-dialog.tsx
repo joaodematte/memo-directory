@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { useBookmark } from '@/contexts/bookmark-context';
-import { useGroup } from '@/contexts/group-context';
+import { useGroupStore } from '@/providers/group-store-provider';
+import { useBookmarkStore } from '@/stores/bookmark-store';
 import { api } from '@/trpc/react';
 
 export function DeleteBookmarkDialog(
@@ -19,8 +19,8 @@ export function DeleteBookmarkDialog(
 ) {
   const trpcUtils = api.useUtils();
 
-  const { selectedGroup } = useGroup();
-  const { selectedBookmark } = useBookmark();
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
+  const selectedBookmark = useBookmarkStore((state) => state.selectedBookmark);
 
   const { mutateAsync: deleteBookmark, isPending } =
     api.bookmark.delete.useMutation({

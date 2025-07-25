@@ -3,9 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { Header } from '@/components/header';
 import { MainContent } from '@/components/main-content';
-import { BookmarkProvider } from '@/contexts/bookmark-context';
-import { GroupProvider } from '@/contexts/group-context';
 import { auth } from '@/lib/auth';
+import { GroupStoreProvider } from '@/providers/group-store-provider';
 import { HydrateClient, api } from '@/trpc/server';
 
 export default async function HomePage() {
@@ -21,14 +20,12 @@ export default async function HomePage() {
 
   return (
     <HydrateClient>
-      <GroupProvider initialGroups={initialGroups}>
-        <BookmarkProvider>
-          <div className="mx-auto w-full max-w-2xl">
-            <Header user={session.user} />
-            <MainContent />
-          </div>
-        </BookmarkProvider>
-      </GroupProvider>
+      <GroupStoreProvider initialGroups={initialGroups}>
+        <div className="mx-auto w-full max-w-2xl">
+          <Header user={session.user} />
+          <MainContent />
+        </div>
+      </GroupStoreProvider>
     </HydrateClient>
   );
 }

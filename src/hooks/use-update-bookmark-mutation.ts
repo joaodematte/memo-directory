@@ -1,14 +1,14 @@
 import { toast } from 'sonner';
 
-import { useBookmark } from '@/contexts/bookmark-context';
-import { useGroup } from '@/contexts/group-context';
+import { useGroupStore } from '@/providers/group-store-provider';
+import { useBookmarkStore } from '@/stores/bookmark-store';
 import { api } from '@/trpc/react';
 
 export function useUpdateBookmarkMutation() {
   const trpcUtils = api.useUtils();
 
-  const { selectedGroup } = useGroup();
-  const { setIsEditMode } = useBookmark();
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
+  const setIsEditMode = useBookmarkStore((state) => state.setIsEditMode);
 
   return api.bookmark.update.useMutation({
     onMutate: async (data) => {

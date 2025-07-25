@@ -6,6 +6,7 @@ import {
   LogOutIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { authClient } from '@/lib/auth-client';
+import { KeyboardManager } from '@/lib/keyboard-manager';
 
 interface UserMenuProps {
   user: User;
@@ -25,15 +27,36 @@ interface UserMenuProps {
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
 
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+
   const handleLogOut = async () => {
     await authClient.signOut().then(() => router.push('/'));
+  };
+
+  const handleKeyDown = async (event: React.KeyboardEvent) => {
+    if (!KeyboardManager.isNumberKey(event)) return;
+
+    event.preventDefault();
+
+    if (KeyboardManager.isKey(event, '1')) {
+      event.preventDefault();
+      setIsMenuOpen(false);
+      return;
+    }
+
+    if (KeyboardManager.isKey(event, '2')) {
+      event.preventDefault();
+      setIsMenuOpen(false);
+      await handleLogOut();
+      return;
+    }
   };
 
   const username = user.email.split('@')[0] ?? '';
   const userImage = user.image ?? '';
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="ghost">
           <img
@@ -48,7 +71,7 @@ export function UserMenu({ user }: UserMenuProps) {
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" onKeyDown={handleKeyDown}>
         <DropdownMenuItem>
           <CircleQuestionMark strokeWidth={2.5} />
           Help

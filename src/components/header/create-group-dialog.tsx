@@ -17,8 +17,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { Label } from '@/components/ui/label';
-import { useGroup } from '@/contexts/group-context';
 import { authClient } from '@/lib/auth-client';
+import { useGroupStore } from '@/providers/group-store-provider';
 import { api } from '@/trpc/react';
 
 interface CreateGroupDialogProps extends React.ComponentProps<typeof Dialog> {
@@ -37,7 +37,7 @@ export function CreateGroupDialog({
   const trpcUtils = api.useUtils();
 
   const { data: sessionData } = authClient.useSession();
-  const { setSelectedGroup } = useGroup();
+  const setSelectedGroup = useGroupStore((state) => state.setSelectedGroup);
 
   const { mutateAsync: createGroup, isPending } = api.group.create.useMutation({
     onMutate: async (data) => {
@@ -47,7 +47,7 @@ export function CreateGroupDialog({
 
       if (!previousGroups || !sessionData) {
         console.warn(
-          'No previous group data or session data found in cache. Optimistic delete skipped.'
+          'No previous group data or session data found in cache. Optimistic create skipped.'
         );
 
         return { previousGroups };
@@ -65,8 +65,6 @@ export function CreateGroupDialog({
         ...previousGroups,
         newGroup
       ]);
-
-      console.log(data);
 
       setSelectedGroup(newGroup);
       toggleDialog();

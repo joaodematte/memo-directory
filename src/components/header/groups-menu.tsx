@@ -1,15 +1,11 @@
 'use client';
 
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  CirclePlusIcon,
-  TrashIcon
-} from 'lucide-react';
+import { ChevronsUpDownIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { CreateGroupDialog } from '@/components/header/create-group-dialog';
 import { DeleteGroupDialog } from '@/components/header/delete-group-dialog';
+import { GroupRadioItem } from '@/components/header/group-radio-item';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,14 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { useGroup } from '@/contexts/group-context';
-import { api } from '@/trpc/react';
+import { KeyboardManager } from '@/lib/keyboard-manager';
+import { useGroupStore } from '@/providers/group-store-provider';
 
 type GroupsMenuProps = Omit<
   React.ComponentProps<typeof DropdownMenu>,
@@ -33,10 +28,11 @@ type GroupsMenuProps = Omit<
 >;
 
 export function GroupsMenu(props: GroupsMenuProps) {
-  const trpcUtils = api.useUtils();
+  const groups = useGroupStore((state) => state.groups);
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
+  const setSelectedGroup = useGroupStore((state) => state.setSelectedGroup);
 
-  const { groups, selectedGroup, setSelectedGroup } = useGroup();
-
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
 
@@ -54,12 +50,40 @@ export function GroupsMenu(props: GroupsMenuProps) {
     setIsDeleteDialogOpen(!isDeleteDialogOpen);
   };
 
-  const onMouseEnter = (id: string) => {
-    void trpcUtils.bookmark.getAllByGroup.prefetch({ groupId: id });
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (KeyboardManager.isKey(event, 'c') && !isCreateDialogOpen) {
+      event.preventDefault();
+
+      toggleCreateDialog();
+      setIsMenuOpen(false);
+      return;
+    }
+
+    if (KeyboardManager.isKey(event, 'd') && !isDeleteDialogOpen) {
+      event.preventDefault();
+
+      toggleDeleteDialog();
+      setIsMenuOpen(false);
+      return;
+    }
+
+    if (KeyboardManager.isNumberKey(event)) {
+      event.preventDefault();
+
+      const group = groups.find((_gp, i) => String(i + 1) === event.key);
+
+      if (group && group.id !== selectedGroup.id) {
+        setSelectedGroup(group);
+        setIsMenuOpen(false);
+        return;
+      }
+    }
   };
 
+  const disableDelete = groups.length <= 1;
+
   return (
-    <DropdownMenu {...props}>
+    <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} {...props}>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="ghost" {...props}>
           <div
@@ -75,36 +99,20 @@ export function GroupsMenu(props: GroupsMenuProps) {
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" onKeyDown={handleKeyDown}>
         <DropdownMenuGroup>
           <DropdownMenuLabel>Groups</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={selectedGroup.id}
             onValueChange={onGroupValueChange}
           >
-            {groups.map(({ id, name, color }, index) => (
-              <DropdownMenuRadioItem
-                key={id}
-                value={id}
-                shouldRenderIndicator={false}
-                className="group"
-                onMouseEnter={() => onMouseEnter(id)}
-              >
-                <div
-                  className="size-4 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span>{name}</span>
-                <DropdownMenuShortcut>
-                  <Kbd className="group-data-[state=checked]:hidden">
-                    {index + 1}
-                  </Kbd>
-                  <CheckIcon
-                    className="not-group-data-[state=checked]:hidden"
-                    strokeWidth={2.5}
-                  />
-                </DropdownMenuShortcut>
-              </DropdownMenuRadioItem>
+            {groups.map((group, index) => (
+              <GroupRadioItem
+                key={group.id}
+                value={group.id}
+                group={group}
+                index={index}
+              />
             ))}
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
@@ -112,13 +120,16 @@ export function GroupsMenu(props: GroupsMenuProps) {
         <DropdownMenuGroup>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem onClick={toggleCreateDialog}>
-            <CirclePlusIcon strokeWidth={2.5} />
+            <PlusIcon strokeWidth={2.5} />
             <span>Create Group</span>
             <DropdownMenuShortcut>
               <Kbd>C</Kbd>
             </DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={toggleDeleteDialog}>
+          <DropdownMenuItem
+            onClick={toggleDeleteDialog}
+            disabled={disableDelete}
+          >
             <TrashIcon strokeWidth={2.5} />
             <span>Delete Group</span>
             <DropdownMenuShortcut>

@@ -6,9 +6,9 @@ import {
   ContextMenuSubTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { useBookmark } from '@/contexts/bookmark-context';
-import { useGroup } from '@/contexts/group-context';
 import { useUpdateBookmarkMutation } from '@/hooks/use-update-bookmark-mutation';
+import { useGroupStore } from '@/providers/group-store-provider';
+import { useBookmarkStore } from '@/stores/bookmark-store';
 import type { Group } from '@/types';
 
 interface ContextMenuGroupItemProps extends Group {
@@ -21,7 +21,7 @@ function ContextMenuGroupItem({
   color,
   index
 }: ContextMenuGroupItemProps) {
-  const { selectedBookmark } = useBookmark();
+  const selectedBookmark = useBookmarkStore((state) => state.selectedBookmark);
 
   const { mutateAsync: updateBookmark } = useUpdateBookmarkMutation();
 
@@ -46,7 +46,8 @@ function ContextMenuGroupItem({
 }
 
 export function MoveToGroupSub() {
-  const { groups, selectedGroup } = useGroup();
+  const groups = useGroupStore((state) => state.groups);
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
 
   const filteredGroups = groups.filter((gp) => gp.id !== selectedGroup.id);
 

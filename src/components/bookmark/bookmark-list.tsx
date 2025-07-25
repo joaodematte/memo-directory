@@ -1,109 +1,48 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { BookmarkItem } from '@/components/bookmark/bookmark-item';
 import { BookmarkSkeleton } from '@/components/bookmark/bookmark-skeleton';
 import { DeleteBookmarkDialog } from '@/components/bookmark/delete-bookmark-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useBookmark } from '@/contexts/bookmark-context';
-import { useGroup } from '@/contexts/group-context';
-import { KeyboardManager } from '@/lib/keyboard-manager';
-import { ShortcutManager } from '@/lib/shortcut-manager';
+import { useGroupStore } from '@/providers/group-store-provider';
 import { api } from '@/trpc/react';
 
-export function BookmarkList() {
-  const { selectedGroup } = useGroup();
-  const { isEditMode, setSelectedBookmark } = useBookmark();
+import { BookmarkItem } from './bookmark-item';
 
-  const bookmarksRef = useRef<HTMLButtonElement[]>([]);
-  const listRef = useRef<HTMLDivElement>(null);
+export function BookmarkList() {
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
 
   const [isDeleteBookmarkDialogOpen, setIsDeleteBookmarkDialogOpen] =
     useState<boolean>(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
 
-  const { data: bookmarks, isLoading } = api.bookmark.getAllByGroup.useQuery({
+  const { data: bookmarks, isPending } = api.bookmark.getAllByGroup.useQuery({
     groupId: selectedGroup.id
   });
 
-  const toggleDeleteBookmarkDialog = () => {
-    setIsDeleteBookmarkDialogOpen(true);
-  };
+  const renderContent = () => {
+    if (isPending) {
+      return Array.from({ length: 12 }).map((_, i) => (
+        <BookmarkSkeleton key={i} />
+      ));
+    }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!bookmarks || isEditMode) return;
-
-    if (KeyboardManager.isArrowDownKey(event)) {
-      event.preventDefault();
-
-      setActiveIndex((prevIndex) => (prevIndex + 1) % bookmarks.length);
-    } else if (KeyboardManager.isArrowUpKey(event)) {
-      event.preventDefault();
-
-      setActiveIndex(
-        (prevIndex) => (prevIndex - 1 + bookmarks.length) % bookmarks.length
+    if (!bookmarks || bookmarks.length === 0) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <p className="text-muted-foreground text-xs">
+            No bookmarks in this group.
+          </p>
+        </div>
       );
     }
+
+    return bookmarks.map((item) => (
+      <BookmarkItem key={item.id} bookmark={item} />
+    ));
   };
-
-  const handleBlur = (event: React.FocusEvent) => {
-    if (!listRef.current?.contains(event.relatedTarget)) {
-      setActiveIndex(-1);
-    }
-  };
-
-  useEffect(() => {
-    if (
-      activeIndex !== -1 &&
-      bookmarksRef.current[activeIndex] &&
-      !isEditMode
-    ) {
-      const element = bookmarksRef.current[activeIndex];
-      const bookmark = bookmarks?.find((bk) => bk.id === element.id);
-
-      if (!bookmark) return;
-
-      element.focus();
-      setSelectedBookmark(bookmark);
-    }
-  }, [activeIndex, bookmarks, isEditMode, setSelectedBookmark]);
-
-  const handleDocumentKeyDown = (event: KeyboardEvent) => {
-    if (!ShortcutManager.isFocusInputShortcut(event)) return;
-    event.preventDefault();
-
-    setActiveIndex(0);
-  };
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleDocumentKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleDocumentKeyDown);
-    };
-  }, []);
-
-  const content = isLoading
-    ? Array.from({ length: 12 }).map((_, i) => <BookmarkSkeleton key={i} />)
-    : bookmarks?.map((item, index) => (
-        <BookmarkItem
-          key={item.id}
-          ref={(el) => (bookmarksRef.current[index] = el)}
-          index={index}
-          toggleDeleteDialog={toggleDeleteBookmarkDialog}
-          setActiveIndex={setActiveIndex}
-          {...item}
-        />
-      ));
 
   return (
-    <ScrollArea
-      ref={listRef}
-      className="flex h-[436px]"
-      onKeyDown={handleKeyDown}
-      onBlur={handleBlur}
-    >
-      {content}
-
+    <ScrollArea className="h-[436px]">
+      <div className="flex flex-col gap-2 p-2">{renderContent()}</div>
       <DeleteBookmarkDialog
         open={isDeleteBookmarkDialogOpen}
         onOpenChange={setIsDeleteBookmarkDialogOpen}

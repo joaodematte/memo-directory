@@ -21,6 +21,7 @@ export default tseslint.config(
       ...tseslint.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
       ...tseslint.configs.stylisticTypeChecked
+      // reactHooks.configs.recommended
     ],
     rules: {
       '@typescript-eslint/array-type': 'off',

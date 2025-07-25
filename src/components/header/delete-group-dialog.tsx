@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { useGroup } from '@/contexts/group-context';
+import { useGroupStore } from '@/providers/group-store-provider';
 import { api } from '@/trpc/react';
 
 export function DeleteGroupDialog(
@@ -18,7 +18,8 @@ export function DeleteGroupDialog(
 ) {
   const trpcUtils = api.useUtils();
 
-  const { selectedGroup, setSelectedGroup } = useGroup();
+  const selectedGroup = useGroupStore((state) => state.selectedGroup);
+  const setSelectedGroup = useGroupStore((state) => state.setSelectedGroup);
 
   const { mutateAsync: deleteGroup, isPending } = api.group.delete.useMutation({
     onMutate: async (data) => {
@@ -34,11 +35,13 @@ export function DeleteGroupDialog(
         return { previousGroups };
       }
 
+      const groupIndex = previousGroups.findIndex((gp) => gp.id === data.id);
       const updatedGroups = previousGroups.filter((gp) => gp.id !== data.id);
+      const indexToSelect = groupIndex === 0 ? 0 : groupIndex - 1;
 
       trpcUtils.group.getAllByUser.setData(undefined, updatedGroups);
 
-      setSelectedGroup(updatedGroups[0]!);
+      setSelectedGroup(updatedGroups[indexToSelect]!);
 
       toast.success('Group deleted');
 
