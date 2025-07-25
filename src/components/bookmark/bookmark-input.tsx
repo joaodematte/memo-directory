@@ -1,23 +1,23 @@
 import type { inferProcedureInput } from '@trpc/server';
-import React, {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState
-} from 'react';
+import { PlusIcon } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
+import { Kbd } from '@/components/ui/kbd';
 import { useCreateBookmark } from '@/hooks/use-create-bookmark';
 import { KeyboardManager } from '@/lib/keyboard-manager';
 import { ShortcutManager } from '@/lib/shortcut-manager';
 import { isValidURL } from '@/lib/url';
+import { cn } from '@/lib/utils';
 import { useGroupStore } from '@/providers/group-store-provider';
 import type { AppRouter } from '@/server/api/root';
 
 type CreateBookmarkInput = inferProcedureInput<AppRouter['bookmark']['create']>;
 
-export function BookmarkInput(props: React.ComponentProps<'input'>) {
+export function BookmarkInput({
+  className,
+  ...props
+}: React.ComponentProps<'input'>) {
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
 
   const [inputValue, setInputValue] = useState<string>('');
@@ -99,14 +99,22 @@ export function BookmarkInput(props: React.ComponentProps<'input'>) {
     };
   }, [keyDownHandler]);
 
-  useImperativeHandle(props.ref, () => inputRef.current!, []);
-
   return (
-    <Input
-      value={inputValue}
-      onChange={handleInputOnChange}
-      onKeyDown={handleInputKeyDown}
-      {...props}
-    />
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 flex h-full w-10 items-center justify-center gap-1">
+        <PlusIcon className="text-muted-foreground size-4" />
+      </div>
+      <Input
+        ref={inputRef}
+        onChange={handleInputOnChange}
+        onKeyDown={handleInputKeyDown}
+        className={cn('pr-16 pl-10', className)}
+        {...props}
+      />
+      <Kbd
+        keys={['Alt', 'K']}
+        className="absolute top-1/2 right-2 -translate-y-1/2"
+      />
+    </div>
   );
 }

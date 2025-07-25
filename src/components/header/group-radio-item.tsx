@@ -38,7 +38,10 @@ export function GroupRadioItem({
       />
       <span>{group.name}</span>
       <DropdownMenuShortcut>
-        <Kbd className="group-data-[state=checked]:hidden">{index + 1}</Kbd>
+        <Kbd
+          keys={[String(index + 1)]}
+          className="group-data-[state=checked]:hidden"
+        />
         <CheckIcon
           className="not-group-data-[state=checked]:hidden"
           strokeWidth={2.5}

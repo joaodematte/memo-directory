@@ -39,7 +39,7 @@ function ContextMenuGroupItem({
       <div className="size-4 rounded-full" style={{ backgroundColor: color }} />
       {name}
       <ContextMenuShortcut>
-        <Kbd>{index + 1}</Kbd>
+        <Kbd keys={[String(index + 1)]} />
       </ContextMenuShortcut>
     </ContextMenuItem>
   );

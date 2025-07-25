@@ -159,7 +159,7 @@ export function CreateGroupDialog({
             <DialogClose asChild>
               <Button variant="ghost">
                 Close
-                <Kbd className="w-8">Esc</Kbd>
+                <Kbd keys={['Esc']} />
               </Button>
             </DialogClose>
 

@@ -85,7 +85,7 @@ export function GroupsMenu(props: GroupsMenuProps) {
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen} {...props}>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="ghost" {...props}>
+        <Button variant="ghost" {...props}>
           <div
             className="size-2 rounded-full"
             style={{
@@ -123,7 +123,7 @@ export function GroupsMenu(props: GroupsMenuProps) {
             <PlusIcon strokeWidth={2.5} />
             <span>Create Group</span>
             <DropdownMenuShortcut>
-              <Kbd>C</Kbd>
+              <Kbd keys={['C']} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -133,7 +133,7 @@ export function GroupsMenu(props: GroupsMenuProps) {
             <TrashIcon strokeWidth={2.5} />
             <span>Delete Group</span>
             <DropdownMenuShortcut>
-              <Kbd>D</Kbd>
+              <Kbd keys={['D']} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>

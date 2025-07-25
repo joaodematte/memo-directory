@@ -1,6 +1,11 @@
 /* eslint-disable @next/next/no-sync-scripts */
 import { type Metadata } from 'next';
-import { IBM_Plex_Mono, Inter } from 'next/font/google';
+import {
+  Geist_Mono,
+  IBM_Plex_Mono,
+  Inter,
+  JetBrains_Mono
+} from 'next/font/google';
 
 import { cn } from '@/lib/utils';
 import { TRPCReactProvider } from '@/trpc/react';
@@ -20,9 +25,8 @@ const fontSans = Inter({
   variable: '--font-sans'
 });
 
-const fontMono = IBM_Plex_Mono({
+const fontMono = Geist_Mono({
   subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700'],
   variable: '--font-mono'
 });
 

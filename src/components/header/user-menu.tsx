@@ -58,7 +58,7 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="ghost">
+        <Button variant="ghost">
           <img
             src={userImage}
             alt="User profile picture"
@@ -76,14 +76,14 @@ export function UserMenu({ user }: UserMenuProps) {
           <CircleQuestionMark strokeWidth={2.5} />
           Help
           <DropdownMenuShortcut>
-            <Kbd>1</Kbd>
+            <Kbd keys={['1']} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogOut} className="cursor-pointer">
           <LogOutIcon strokeWidth={2.5} />
           Log out
           <DropdownMenuShortcut>
-            <Kbd>2</Kbd>
+            <Kbd keys={['2']} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
