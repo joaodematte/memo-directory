@@ -109,6 +109,7 @@ export function BookmarkInput({
         onChange={handleInputOnChange}
         onKeyDown={handleInputKeyDown}
         className={cn('pr-16 pl-10', className)}
+        autoFocus
         {...props}
       />
       <Kbd

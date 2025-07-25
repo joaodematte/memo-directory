@@ -6,7 +6,7 @@ export interface BookmarkStore {
   isEditMode: boolean;
   setIsEditMode: (isEditMode: boolean) => void;
   selectedBookmark: Bookmark | null;
-  setSelectedBookmark: (bookmark: Bookmark) => void;
+  setSelectedBookmark: (bookmark: Bookmark | null) => void;
 }
 
 export const bookmarkStore = createStore<BookmarkStore>((set) => ({

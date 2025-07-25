@@ -2,6 +2,7 @@
 
 import { BookmarkInput } from '@/components/bookmark/bookmark-input';
 import { BookmarkList } from '@/components/bookmark/bookmark-list';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function MainContent() {
   return (
@@ -20,7 +21,9 @@ export function MainContent() {
         </div>
       </div>
 
-      <BookmarkList />
+      <ScrollArea className="h-[436px]">
+        <BookmarkList />
+      </ScrollArea>
     </div>
   );
 }
