@@ -13,10 +13,15 @@ import { api } from '@/trpc/react';
 
 import { BookmarkItem } from './bookmark-item';
 
+interface BookmarkListProps extends React.ComponentProps<'div'> {
+  filter: string;
+}
+
 export function BookmarkList({
   className,
+  filter,
   ...props
-}: React.ComponentProps<'div'>) {
+}: BookmarkListProps) {
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
   const focusedIndex = useFocusStore((state) => state.focusedIndex);
   const setFocusedIndex = useFocusStore((state) => state.setFocusedIndex);
@@ -112,7 +117,30 @@ export function BookmarkList({
       );
     }
 
-    return bookmarks.map((item, index) => (
+    const filteredBookmarks = bookmarks.filter((bookmark) => {
+      if (filter === '') return true;
+
+      if (bookmark.type === 'text') {
+        return bookmark.content.toLowerCase().includes(filter.toLowerCase());
+      }
+
+      return (
+        bookmark.content.toLowerCase().includes(filter.toLowerCase()) ||
+        bookmark.title?.toLowerCase().includes(filter.toLowerCase())
+      );
+    });
+
+    const noMatches = 'No bookmarks matches your search.';
+
+    if (filteredBookmarks.length === 0 && filter !== '') {
+      return (
+        <div className="flex h-full items-center justify-center py-4">
+          <p className="text-muted-foreground text-xs">{noMatches}</p>
+        </div>
+      );
+    }
+
+    return filteredBookmarks.map((item, index) => (
       <BookmarkItem
         key={item.id}
         index={index}

@@ -66,7 +66,7 @@ export function BookmarkUrl({
       <time
         dateTime={bookmark.createdAt.toISOString()}
         className={cn(
-          'text-muted-foreground ml-auto text-xs',
+          'text-muted-foreground ml-auto shrink-0 text-xs',
           'group-focus-visible/list:group-data-[selected=true]/item:hidden'
         )}
       >

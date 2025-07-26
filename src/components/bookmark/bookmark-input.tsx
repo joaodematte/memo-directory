@@ -14,22 +14,28 @@ import type { AppRouter } from '@/server/api/root';
 
 type CreateBookmarkInput = inferProcedureInput<AppRouter['bookmark']['create']>;
 
+interface BookmarkInputProps
+  extends Omit<React.ComponentProps<'input'>, 'value'> {
+  value: string;
+  onValueChange: (value: string) => void;
+}
+
 export function BookmarkInput({
   className,
+  value,
+  onValueChange,
   ...props
-}: React.ComponentProps<'input'>) {
+}: BookmarkInputProps) {
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
-
-  const [inputValue, setInputValue] = useState<string>('');
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createBookmark } = useCreateBookmark(() => {
-    setInputValue('');
+    onValueChange('');
   });
 
   const handleInputOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
+    onValueChange(event.target.value);
   };
 
   const getDataToCreateBookmark = useCallback(
@@ -54,7 +60,7 @@ export function BookmarkInput({
 
     event.preventDefault();
 
-    const trimmedValue = inputValue.trim();
+    const trimmedValue = value.trim();
 
     if (trimmedValue === '') return;
 
@@ -106,6 +112,7 @@ export function BookmarkInput({
       </div>
       <Input
         ref={inputRef}
+        value={value}
         onChange={handleInputOnChange}
         onKeyDown={handleInputKeyDown}
         className={cn('pr-16 pl-10', className)}

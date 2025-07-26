@@ -1,14 +1,24 @@
 'use client';
 
+import { useCallback, useState } from 'react';
+
 import { BookmarkInput } from '@/components/bookmark/bookmark-input';
 import { BookmarkList } from '@/components/bookmark/bookmark-list';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function MainContent() {
+  const [bookmarkInputValue, setBookmarkInputValue] = useState<string>('');
+
+  const handleBookmarkInputOnChange = useCallback((value: string) => {
+    setBookmarkInputValue(value);
+  }, []);
+
   return (
     <div className="my-24">
       <div className="px-4">
         <BookmarkInput
+          value={bookmarkInputValue}
+          onValueChange={handleBookmarkInputOnChange}
           placeholder="Paste a URL, color code or just plain text..."
           className="h-10 text-sm"
         />
@@ -22,7 +32,7 @@ export function MainContent() {
       </div>
 
       <ScrollArea className="h-[436px]">
-        <BookmarkList />
+        <BookmarkList filter={bookmarkInputValue} />
       </ScrollArea>
     </div>
   );
