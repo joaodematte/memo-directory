@@ -1,5 +1,6 @@
 'use client';
 
+import { GoogleIcon } from '@/components/google-icon';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 
@@ -13,6 +14,7 @@ export function LogInButton() {
 
   return (
     <Button className="cursor-pointer" onClick={handleLogIn}>
+      <GoogleIcon className="size-4" />
       Log in with Google
     </Button>
   );

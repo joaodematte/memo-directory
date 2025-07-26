@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <HydrateClient>
       <GroupStoreProvider initialGroups={initialGroups}>
-        <div className="mx-auto w-full max-w-2xl">
+        <div className="mx-auto w-full max-w-2xl px-6">
           <Header user={session.user} />
           <MainContent />
         </div>

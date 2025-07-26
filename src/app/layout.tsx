@@ -10,9 +10,34 @@ import '@/styles/globals.css';
 import { Providers } from '@/app/providers';
 
 export const metadata: Metadata = {
-  title: 'memo.directory',
+  title: {
+    template: '%s — memo.directory',
+    default: 'memo.directory'
+  },
   description:
-    'Create smart bookmarks with custom tags and colors. Find any saved link instantly with powerful search, filtering and keyboard-first navigation.'
+    'Create smart bookmarks with custom tags and colors. Find any saved link instantly with powerful search, filtering and keyboard-first navigation.',
+  keywords: '',
+  authors: [{ name: 'João Dematte', url: 'https://joaodematte.com' }],
+  creator: 'João Dematte',
+  openGraph: {
+    title: {
+      template: '%s — memo.directory',
+      default: 'memo.directory'
+    },
+    description:
+      'Create smart bookmarks with custom tags and colors. Find any saved link instantly with powerful search, filtering and keyboard-first navigation.',
+    url: 'https://memo.directory/',
+    siteName: 'memo.directory',
+    type: 'website'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'memo.directory',
+    description:
+      'Create smart bookmarks with custom tags and colors. Find any saved link instantly with powerful search, filtering and keyboard-first navigation.',
+    site: 'https://memo.directory/',
+    creator: '@joaodematte'
+  }
 };
 
 const fontSans = Geist({

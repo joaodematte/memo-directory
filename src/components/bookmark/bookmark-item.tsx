@@ -210,6 +210,7 @@ export function BookmarkItem({
 
   const classes = cn(
     'group/item flex w-full items-center gap-4 overflow-hidden rounded-md px-4 py-2 text-left text-sm',
+    'hover:bg-accent',
     'data-[state=open]:bg-accent',
     'group-focus-visible/list:data-[selected=true]:bg-accent',
     isEditing && 'bg-accent',

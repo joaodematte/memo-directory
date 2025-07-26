@@ -6,6 +6,22 @@ import './src/env.js';
 
 /** @type {import("next").NextConfig} */
 const config = {
+  rewrites: async () => {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: 'app.memo.directory'
+            }
+          ],
+          destination: '/app/:path*'
+        }
+      ]
+    };
+  },
   images: {
     remotePatterns: [
       {

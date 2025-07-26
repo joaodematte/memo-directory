@@ -3,8 +3,12 @@ import type { User } from 'better-auth';
 import {
   ChevronsUpDownIcon,
   CircleQuestionMark,
-  LogOutIcon
+  LogOutIcon,
+  MoonIcon,
+  SunIcon,
+  SunMoonIcon
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -28,6 +32,8 @@ interface UserMenuProps {
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
 
+  const { setTheme, theme } = useTheme();
+
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState<boolean>(false);
 
@@ -37,6 +43,16 @@ export function UserMenu({ user }: UserMenuProps) {
 
   const toggleHelpDialog = () => {
     setIsHelpDialogOpen((prev) => !prev);
+  };
+
+  const toggleTheme = () => {
+    if (theme === 'system') {
+      setTheme('light');
+    } else if (theme === 'light') {
+      setTheme('dark');
+    } else {
+      setTheme('system');
+    }
   };
 
   const handleKeyDown = async (event: React.KeyboardEvent) => {
@@ -53,6 +69,13 @@ export function UserMenu({ user }: UserMenuProps) {
 
     if (KeyboardManager.isKey(event, '2')) {
       event.preventDefault();
+      toggleTheme();
+      setIsMenuOpen(false);
+      return;
+    }
+
+    if (KeyboardManager.isKey(event, '3')) {
+      event.preventDefault();
       setIsMenuOpen(false);
       await handleLogOut();
       return;
@@ -61,6 +84,22 @@ export function UserMenu({ user }: UserMenuProps) {
 
   const username = user.email.split('@')[0] ?? '';
   const userImage = user.image ?? '';
+
+  const themeIcon =
+    theme === 'system' ? (
+      <SunMoonIcon className="text-muted-foreground size-4" />
+    ) : theme === 'dark' ? (
+      <MoonIcon className="text-muted-foreground size-4" />
+    ) : (
+      <SunIcon className="text-muted-foreground size-4" />
+    );
+
+  const themeLabel =
+    theme === 'system'
+      ? 'System theme'
+      : theme === 'dark'
+        ? 'Dark theme'
+        : 'Light theme';
 
   return (
     <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -86,11 +125,18 @@ export function UserMenu({ user }: UserMenuProps) {
             <Kbd keys={['1']} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={toggleTheme}>
+          {themeIcon}
+          {themeLabel}
+          <DropdownMenuShortcut>
+            <Kbd keys={['2']} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogOut} className="cursor-pointer">
           <LogOutIcon strokeWidth={2.5} />
           Log out
           <DropdownMenuShortcut>
-            <Kbd keys={['2']} />
+            <Kbd keys={['3']} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>

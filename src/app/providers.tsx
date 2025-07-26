@@ -10,7 +10,8 @@ export function Providers({ children }: ProviderProps) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="dark"
+      defaultTheme="system"
+      enableSystem
       disableTransitionOnChange
     >
       {children}
