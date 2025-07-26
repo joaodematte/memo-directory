@@ -3,7 +3,7 @@ export class KeyboardManager {
     return event.key === 'Enter';
   }
 
-  public static isEscKey<T>(event: KeyboardEvent | React.KeyboardEvent<T>) {
+  public static isEscapeKey<T>(event: KeyboardEvent | React.KeyboardEvent<T>) {
     return event.key === 'Escape';
   }
 

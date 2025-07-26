@@ -1,4 +1,4 @@
-import { createStore, useStore } from 'zustand';
+import { create } from 'zustand';
 
 import type { Bookmark } from '@/types';
 
@@ -9,13 +9,9 @@ export interface BookmarkStore {
   setSelectedBookmark: (bookmark: Bookmark | null) => void;
 }
 
-export const bookmarkStore = createStore<BookmarkStore>((set) => ({
+export const useBookmarkStore = create<BookmarkStore>((set) => ({
   isEditMode: false,
   setIsEditMode: (isEditMode) => set({ isEditMode }),
   selectedBookmark: null,
   setSelectedBookmark: (bookmark) => set({ selectedBookmark: bookmark })
 }));
-
-export function useBookmarkStore<T>(selector: (store: BookmarkStore) => T): T {
-  return useStore(bookmarkStore, selector);
-}

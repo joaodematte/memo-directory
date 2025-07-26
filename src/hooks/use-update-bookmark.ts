@@ -1,10 +1,20 @@
+import type { inferProcedureInput } from '@trpc/server';
 import { toast } from 'sonner';
 
 import { useGroupStore } from '@/providers/group-store-provider';
+import type { AppRouter } from '@/server/api/root';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import { api } from '@/trpc/react';
 
-export function useUpdateBookmarkMutation() {
+export type UpdateBookmarkData = inferProcedureInput<
+  AppRouter['bookmark']['update']
+>;
+
+interface UseUpdateBookmarkProps {
+  onMutate?: () => void;
+}
+
+export function useUpdateBookmark(props?: UseUpdateBookmarkProps) {
   const trpcUtils = api.useUtils();
 
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
@@ -31,7 +41,6 @@ export function useUpdateBookmarkMutation() {
         console.warn(
           'No target bookmark data found in cache. Optimistic delete skipped.'
         );
-
         return { previousBookmarks };
       }
 
@@ -53,6 +62,7 @@ export function useUpdateBookmarkMutation() {
       );
 
       setIsEditMode(false);
+      props?.onMutate?.();
       toast.success('Bookmark updated');
 
       return { previousBookmarks };

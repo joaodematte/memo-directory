@@ -11,6 +11,12 @@ export class ShortcutManager {
     return (event.metaKey || event.altKey) && event.key === 'f';
   }
 
+  public static isOpenInNewTabShortcut<T>(
+    event: KeyboardEvent | React.KeyboardEvent<T>
+  ) {
+    return (event.metaKey || event.altKey) && event.key === 'Enter';
+  }
+
   public static isEditShortcut<T>(
     event: KeyboardEvent | React.KeyboardEvent<T>
   ) {

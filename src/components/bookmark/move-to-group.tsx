@@ -6,7 +6,7 @@ import {
   ContextMenuSubTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { useUpdateBookmarkMutation } from '@/hooks/use-update-bookmark-mutation';
+import { useUpdateBookmark } from '@/hooks/use-update-bookmark';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import type { Group } from '@/types';
@@ -23,7 +23,7 @@ function ContextMenuGroupItem({
 }: ContextMenuGroupItemProps) {
   const selectedBookmark = useBookmarkStore((state) => state.selectedBookmark);
 
-  const { mutateAsync: updateBookmark } = useUpdateBookmarkMutation();
+  const { mutateAsync: updateBookmark } = useUpdateBookmark();
 
   const handleMoveToTab = async () => {
     if (!selectedBookmark) return;

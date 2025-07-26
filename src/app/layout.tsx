@@ -1,11 +1,6 @@
 /* eslint-disable @next/next/no-sync-scripts */
 import { type Metadata } from 'next';
-import {
-  Geist_Mono,
-  IBM_Plex_Mono,
-  Inter,
-  JetBrains_Mono
-} from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 
 import { cn } from '@/lib/utils';
 import { TRPCReactProvider } from '@/trpc/react';
@@ -20,7 +15,7 @@ export const metadata: Metadata = {
     'Create smart bookmarks with custom tags and colors. Find any saved link instantly with powerful search, filtering and keyboard-first navigation.'
 };
 
-const fontSans = Inter({
+const fontSans = Geist({
   subsets: ['latin'],
   variable: '--font-sans'
 });
