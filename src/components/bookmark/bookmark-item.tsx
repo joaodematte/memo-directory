@@ -1,5 +1,6 @@
 'use client';
 
+import type { inferProcedureInput } from '@trpc/server';
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,14 +15,16 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { type UpdateBookmarkData } from '@/hooks/use-update-bookmark';
 import { KeyboardManager } from '@/lib/keyboard-manager';
 import { ShortcutManager } from '@/lib/shortcut-manager';
 import { cn } from '@/lib/utils';
+import type { AppRouter } from '@/server/api/root';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import { useFocusStore } from '@/stores/focus-store';
 import { api } from '@/trpc/react';
 import type { Bookmark } from '@/types';
+
+type UpdateBookmarkData = inferProcedureInput<AppRouter['bookmark']['update']>;
 
 interface BookmarkItemProps extends React.ComponentProps<'button'> {
   index: number;
