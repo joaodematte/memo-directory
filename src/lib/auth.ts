@@ -27,9 +27,7 @@ export const auth = betterAuth({
     },
     defaultCookieAttributes: {
       secure: true,
-      sameSite: 'none',
-      httpOnly: true,
-      partitioned: true
+      sameSite: 'none'
     }
   },
   trustedOrigins: ['https://memo.directory', 'https://app.memo.directory'],
