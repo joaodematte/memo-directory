@@ -24,6 +24,12 @@ export const auth = betterAuth({
     crossSubDomainCookies: {
       enabled: true,
       domain: '.memo.directory'
+    },
+    defaultCookieAttributes: {
+      secure: true,
+      sameSite: 'none',
+      httpOnly: true,
+      partitioned: true
     }
   },
   trustedOrigins: ['https://memo.directory', 'https://app.memo.directory'],

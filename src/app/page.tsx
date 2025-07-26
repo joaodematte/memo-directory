@@ -12,7 +12,7 @@ export default async function HomePage() {
   console.log(session);
 
   if (session) {
-    redirect('http://app.localhost:3000');
+    redirect('https://app.memo.directory');
   }
 
   return (
