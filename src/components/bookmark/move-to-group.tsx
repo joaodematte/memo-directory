@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 import {
   ContextMenuItem,
   ContextMenuShortcut,
@@ -6,9 +8,9 @@ import {
   ContextMenuSubTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import { useUpdateBookmark } from '@/hooks/use-update-bookmark';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
+import { api } from '@/trpc/react';
 import type { Group } from '@/types';
 
 interface ContextMenuGroupItemProps extends Group {
@@ -21,9 +23,44 @@ function ContextMenuGroupItem({
   color,
   index
 }: ContextMenuGroupItemProps) {
+  const trpcUtils = api.useUtils();
+
   const selectedBookmark = useBookmarkStore((state) => state.selectedBookmark);
 
-  const { mutateAsync: updateBookmark } = useUpdateBookmark();
+  const { mutateAsync: updateBookmark } = api.bookmark.update.useMutation({
+    onMutate: async () => {
+      if (!selectedBookmark) return;
+
+      const previousBookmarks = trpcUtils.bookmark.getAllByGroup.getData({
+        groupId: selectedBookmark.groupId
+      });
+
+      if (!previousBookmarks) {
+        console.warn('No bookmarks cache found. Optimistic update skypped.');
+        return { previousBookmarks };
+      }
+
+      await trpcUtils.bookmark.getAllByGroup.cancel({
+        groupId: selectedBookmark.groupId
+      });
+
+      const updatedBookmarks = previousBookmarks.filter(
+        (bk) => bk.id !== selectedBookmark.id
+      );
+
+      trpcUtils.bookmark.getAllByGroup.setData(
+        { groupId: selectedBookmark.groupId },
+        updatedBookmarks
+      );
+
+      toast.success('Bookmark updated');
+
+      return { previousBookmarks };
+    },
+    onSettled: async () => {
+      await trpcUtils.group.getAllByUser.invalidate();
+    }
+  });
 
   const handleMoveToTab = async () => {
     if (!selectedBookmark) return;

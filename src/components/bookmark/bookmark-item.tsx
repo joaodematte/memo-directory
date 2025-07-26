@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { BookmarkText } from '@/components/bookmark/bookmark-text';
 import { BookmarkUrl } from '@/components/bookmark/bookmark-url';
@@ -13,15 +14,13 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
-import {
-  useUpdateBookmark,
-  type UpdateBookmarkData
-} from '@/hooks/use-update-bookmark';
+import { type UpdateBookmarkData } from '@/hooks/use-update-bookmark';
 import { KeyboardManager } from '@/lib/keyboard-manager';
 import { ShortcutManager } from '@/lib/shortcut-manager';
 import { cn } from '@/lib/utils';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import { useFocusStore } from '@/stores/focus-store';
+import { api } from '@/trpc/react';
 import type { Bookmark } from '@/types';
 
 interface BookmarkItemProps extends React.ComponentProps<'button'> {
@@ -39,6 +38,8 @@ export function BookmarkItem({
   onKeyDown: onKeyDownProp,
   ...props
 }: BookmarkItemProps) {
+  const trpcUtils = api.useUtils();
+
   const isEditingMode = useBookmarkStore((state) => state.isEditMode);
   const focusedIndex = useFocusStore((state) => state.focusedIndex);
   const setSelectedBookmark = useBookmarkStore(
@@ -59,9 +60,43 @@ export function BookmarkItem({
   const isEditing =
     useBookmarkStore((state) => state.isEditMode) && focusedIndex === index;
 
-  const { mutateAsync: updateBookmark } = useUpdateBookmark({
-    onMutate: () => {
+  const { mutateAsync: updateBookmark } = api.bookmark.update.useMutation({
+    onMutate: async (data) => {
+      await trpcUtils.bookmark.getAllByGroup.cancel({
+        groupId: bookmark.groupId
+      });
+
+      const previousBookmarks = trpcUtils.bookmark.getAllByGroup.getData({
+        groupId: bookmark.groupId
+      });
+
+      if (!previousBookmarks) {
+        console.warn('No bookmarks cache found. Optimistic update skypped.');
+        return { previousBookmarks };
+      }
+
+      const updatedBookmarks = previousBookmarks.map((bk) => {
+        if (bk.id === data.id) {
+          return { ...bk, ...data };
+        }
+
+        return bk;
+      });
+
+      trpcUtils.bookmark.getAllByGroup.setData(
+        { groupId: bookmark.groupId },
+        updatedBookmarks
+      );
+
+      setIsEditMode(false);
       focusElement(index);
+
+      toast.success('Bookmark updated');
+
+      return { previousBookmarks };
+    },
+    onSettled: async () => {
+      await trpcUtils.group.getAllByUser.invalidate();
     }
   });
 

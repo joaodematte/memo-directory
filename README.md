@@ -1,29 +1,59 @@
-# Create T3 App
+# memo.directory
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+memo.directory is a modern, full-stack bookmarking application that allows you to save and categorize URLs, colors, and text snippets. It features a clean, intuitive user interface with optimistic UI updates for a seamless user experience.
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Versatile Bookmarking**: Save URLs, color codes, or plain text as bookmarks.
+- **Bookmark Grouping**: Organize your bookmarks into customizable groups with unique names and colors.
+- **Optimistic UI Updates**: Enjoy a fast and responsive interface with immediate feedback on your actions.
+- **User Authentication**: Secure your bookmarks with user authentication.
+- **API**: A robust tRPC API for managing bookmarks and groups.
+- **Modern Tech Stack**: Built with Next.js, TypeScript, and Tailwind CSS for a powerful and maintainable application.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **API**: [tRPC](https://trpc.io/)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/) & [TanStack Query](https://tanstack.com/query/latest)
+- **Authentication**: [BetterAuth](https://better-auth.dev/)
 
-## Learn More
+## Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+To get a local copy up and running, follow these simple steps.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### Prerequisites
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+- [Bun](https://bun.sh/)
+- [Docker](https://www.docker.com/)
 
-## How do I deploy this?
+### Installation
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+1. **Clone the repo**
+   ```sh
+   git clone https://github.com/joaodematte/memo-directory.git
+   ```
+2. **Install dependencies**
+   ```sh
+   bun install
+   ```
+3. **Set up environment variables**
+   Create a `.env` file in the root of the project and add the necessary environment variables. You can use the `.env.example` file as a template.
+4. **Start the database**
+   ```sh
+   docker-compose up -d
+   ```
+5. **Run database migrations**
+   ```sh
+   bun db:migrate
+   ```
+6. **Run the development server**
+   ```sh
+   bun dev
+   ```
+
+Now, you should be able to access the application at [http://localhost:3000](http://localhost:3000).
