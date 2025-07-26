@@ -5,7 +5,6 @@ import { BookmarkSkeleton } from '@/components/bookmark/bookmark-skeleton';
 import { DeleteBookmarkDialog } from '@/components/bookmark/delete-bookmark-dialog';
 import { KeyboardManager } from '@/lib/keyboard-manager';
 import { ShortcutManager } from '@/lib/shortcut-manager';
-import { cn } from '@/lib/utils';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import { useFocusStore } from '@/stores/focus-store';
@@ -13,24 +12,22 @@ import { api } from '@/trpc/react';
 
 import { BookmarkItem } from './bookmark-item';
 
-interface BookmarkListProps extends React.ComponentProps<'div'> {
+interface BookmarkListProps {
   filter: string;
 }
 
-export function BookmarkList({
-  className,
-  filter,
-  ...props
-}: BookmarkListProps) {
+type BookmarkItemRef = {
+  id: string;
+  ref: HTMLButtonElement;
+};
+
+export function BookmarkList({ filter }: BookmarkListProps) {
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
   const focusedIndex = useFocusStore((state) => state.focusedIndex);
   const setFocusedIndex = useFocusStore((state) => state.setFocusedIndex);
   const isEditMode = useBookmarkStore((state) => state.isEditMode);
-  const setSelectedBookmark = useBookmarkStore(
-    (state) => state.setSelectedBookmark
-  );
 
-  const listRef = useRef<HTMLDivElement>(null);
+  const elementsRef = useRef<BookmarkItemRef[]>([]);
 
   const [isDeleteBookmarkDialogOpen, setIsDeleteBookmarkDialogOpen] =
     useState<boolean>(false);
@@ -48,55 +45,50 @@ export function BookmarkList({
     setIsDeleteBookmarkDialogOpen((prev) => !prev);
   };
 
-  const focusList = useCallback(() => {
-    listRef.current?.focus();
-  }, []);
+  const focusElement = useCallback(
+    (index: number) => {
+      setFocusedIndex(index);
+      if (index !== -1) elementsRef.current[index]?.ref.focus();
+    },
+    [setFocusedIndex]
+  );
 
-  const onKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (!KeyboardManager.isArrowKey(event) || isEditMode) return;
-
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (KeyboardManager.isArrowKey(event) && !isEditMode) {
       event.preventDefault();
-      event.stopPropagation();
 
       if (KeyboardManager.isArrowDownKey(event)) {
         const nextIndex = (focusedIndex + 1) % (bookmarks?.length ?? 0);
-        setFocusedIndex(nextIndex);
-        const bookmark = bookmarks?.[nextIndex];
-        if (bookmark) setSelectedBookmark(bookmark);
-        return;
+        focusElement(nextIndex);
       }
 
       if (KeyboardManager.isArrowUpKey(event)) {
         const nextIndex =
           (focusedIndex - 1 + (bookmarks?.length ?? 0)) %
           (bookmarks?.length ?? 0);
-        setFocusedIndex(nextIndex);
-        const bookmark = bookmarks?.[nextIndex];
-        if (bookmark) setSelectedBookmark(bookmark);
-        return;
+        focusElement(nextIndex);
       }
-    },
-    [bookmarks, focusedIndex, isEditMode, setFocusedIndex, setSelectedBookmark]
-  );
+    }
+  };
 
   const handleGlobalKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (!ShortcutManager.isFocusListShortcut(event) || isEditMode) return;
+    async (event: KeyboardEvent) => {
+      if (ShortcutManager.isFocusListShortcut(event) && !isEditMode) {
+        event.preventDefault();
 
-      event.preventDefault();
-      event.stopPropagation();
-
-      focusList();
+        focusElement(0);
+      }
     },
-    [focusList, isEditMode]
+    [isEditMode, focusElement]
   );
 
   useEffect(() => {
-    document.addEventListener('keydown', handleGlobalKeyDown);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    window.addEventListener('keydown', handleGlobalKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleGlobalKeyDown);
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, [handleGlobalKeyDown]);
 
@@ -143,30 +135,31 @@ export function BookmarkList({
     return filteredBookmarks.map((item, index) => (
       <BookmarkItem
         key={item.id}
+        ref={(el) => {
+          if (el) {
+            elementsRef.current[index] = {
+              id: item.id,
+              ref: el
+            };
+          }
+        }}
         index={index}
         bookmark={item}
-        data-selected={focusedIndex === index}
-        focusList={focusList}
         onDeleteBookmark={toggleDeleteBookmarkDialog}
+        focusElement={focusElement}
+        onKeyDown={handleKeyDown}
       />
     ));
   };
 
   return (
-    <div
-      ref={listRef}
-      tabIndex={0}
-      data-slot="bookmark-list"
-      className={cn('group/list focus-visible:outline-none', className)}
-      onKeyDown={onKeyDown}
-      {...props}
-    >
+    <>
       {renderContent()}
 
       <DeleteBookmarkDialog
         open={isDeleteBookmarkDialogOpen}
         onOpenChange={setIsDeleteBookmarkDialogOpen}
       />
-    </div>
+    </>
   );
 }

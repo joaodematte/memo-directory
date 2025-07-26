@@ -1,6 +1,6 @@
 import type { inferProcedureInput } from '@trpc/server';
 import { PlusIcon } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';

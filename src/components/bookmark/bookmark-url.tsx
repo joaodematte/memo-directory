@@ -10,7 +10,7 @@ import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);
 
-interface BookmarkUrlProps extends React.ComponentProps<'div'> {
+interface BookmarkUrlProps extends React.ComponentProps<'button'> {
   bookmark: Bookmark;
   isCopying: boolean;
   isEditing: boolean;
@@ -32,11 +32,17 @@ export function BookmarkUrl({
   onEditInputChange,
   ...props
 }: BookmarkUrlProps) {
+  const handleEditInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    onEditInputChange(event.target.value);
+  };
+
   const faviconUrl = getFaviconUrl(bookmark.content);
   const hostname = getHostname(bookmark.content);
 
   return (
-    <div {...props}>
+    <button {...props}>
       {isCopying ? (
         <CheckIcon className="text-muted-foreground size-4" />
       ) : (
@@ -47,7 +53,7 @@ export function BookmarkUrl({
           ref={editInputRef}
           className="field-sizing-content max-w-xs truncate focus-visible:outline-none"
           value={inputValue}
-          onChange={(e) => onEditInputChange(e.target.value)}
+          onChange={handleEditInputChange}
         />
       ) : (
         <span className="max-w-xs truncate">
@@ -56,10 +62,7 @@ export function BookmarkUrl({
       )}
       <span className="text-muted-foreground">{hostname}</span>
       <Kbd
-        className={cn(
-          'ml-auto hidden',
-          'group-focus-visible/list:group-data-[selected=true]/item:flex'
-        )}
+        className={cn('ml-auto hidden', 'group-focus-visible/item:flex')}
         size="sm"
         keys={['⌘', 'Enter']}
       />
@@ -67,11 +70,11 @@ export function BookmarkUrl({
         dateTime={bookmark.createdAt.toISOString()}
         className={cn(
           'text-muted-foreground ml-auto shrink-0 text-xs',
-          'group-focus-visible/list:group-data-[selected=true]/item:hidden'
+          'group-focus-visible/item:hidden'
         )}
       >
         {dayjs(bookmark.createdAt).fromNow()}
       </time>
-    </div>
+    </button>
   );
 }

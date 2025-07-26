@@ -9,7 +9,7 @@ import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);
 
-interface BookmarkTextProps extends React.ComponentProps<'div'> {
+interface BookmarkTextProps extends React.ComponentProps<'button'> {
   bookmark: Bookmark;
   isCopying: boolean;
   isEditing: boolean;
@@ -27,10 +27,16 @@ export function BookmarkText({
   onEditInputChange,
   ...props
 }: BookmarkTextProps) {
+  const handleEditInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    onEditInputChange(event.target.value);
+  };
+
   const isColor = isValidWebColor(inputValue);
 
   return (
-    <div {...props}>
+    <button {...props}>
       {isCopying ? (
         <CheckIcon className="text-muted-foreground size-4" />
       ) : isColor ? (
@@ -46,7 +52,7 @@ export function BookmarkText({
           ref={editInputRef}
           className="field-sizing-content max-w-xs truncate focus-visible:outline-none"
           value={inputValue}
-          onChange={(e) => onEditInputChange(e.target.value)}
+          onChange={handleEditInputChange}
         />
       ) : (
         <span className="max-w-xs truncate">
@@ -54,10 +60,7 @@ export function BookmarkText({
         </span>
       )}
       <Kbd
-        className={cn(
-          'ml-auto hidden',
-          'group-focus-visible/list:group-data-[selected=true]/item:flex'
-        )}
+        className={cn('ml-auto hidden', 'group-focus-visible/item:flex')}
         size="sm"
         keys={['⌘', 'C']}
       />
@@ -65,11 +68,11 @@ export function BookmarkText({
         dateTime={bookmark.createdAt.toISOString()}
         className={cn(
           'text-muted-foreground ml-auto text-xs',
-          'group-focus-visible/list:group-data-[selected=true]/item:hidden'
+          'group-focus-visible/item:hidden'
         )}
       >
         {dayjs(bookmark.createdAt).fromNow()}
       </time>
-    </div>
+    </button>
   );
 }

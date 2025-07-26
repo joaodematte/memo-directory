@@ -6,6 +6,6 @@ interface FocusStore {
 }
 
 export const useFocusStore = create<FocusStore>((set) => ({
-  focusedIndex: 0,
+  focusedIndex: -1,
   setFocusedIndex: (focusedIndex) => set({ focusedIndex })
 }));

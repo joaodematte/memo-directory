@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { useUpdateBookmark } from '@/hooks/use-update-bookmark';
-import { KeyboardManager } from '@/lib/keyboard-manager';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import type { Group } from '@/types';
