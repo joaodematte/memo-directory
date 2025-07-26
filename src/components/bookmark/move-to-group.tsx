@@ -57,8 +57,16 @@ function ContextMenuGroupItem({
 
       return { previousBookmarks };
     },
-    onSettled: async () => {
-      await trpcUtils.group.getAllByUser.invalidate();
+    onSettled: async (data) => {
+      if (!selectedBookmark || !data) return;
+
+      await trpcUtils.bookmark.getAllByGroup.invalidate({
+        groupId: selectedBookmark.groupId
+      });
+
+      await trpcUtils.bookmark.getAllByGroup.invalidate({
+        groupId: data.groupId
+      });
     }
   });
 
