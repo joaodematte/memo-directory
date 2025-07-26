@@ -10,7 +10,7 @@ export default async function HomePage() {
   });
 
   if (session) {
-    redirect('https://app.memo.directory');
+    redirect('/app');
   }
 
   return (

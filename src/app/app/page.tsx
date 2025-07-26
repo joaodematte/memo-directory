@@ -13,7 +13,7 @@ export default async function HomePage() {
   });
 
   if (!session) {
-    redirect('https://memo.directory');
+    redirect('/');
   }
 
   const initialGroups = await api.group.getAllByUser();
