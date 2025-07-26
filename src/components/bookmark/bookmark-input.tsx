@@ -112,7 +112,7 @@ export function BookmarkInput({
         {...props}
       />
       <Kbd
-        keys={['Alt', 'K']}
+        keys={['⌘', 'K']}
         className="absolute top-1/2 right-2 -translate-y-1/2"
       />
     </div>

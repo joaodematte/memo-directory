@@ -59,7 +59,7 @@ export function BookmarkText({
           'group-focus-visible/list:group-data-[selected=true]/item:flex'
         )}
         size="sm"
-        keys={['Ctrl', 'C']}
+        keys={['⌘', 'C']}
       />
       <time
         dateTime={bookmark.createdAt.toISOString()}

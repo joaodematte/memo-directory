@@ -61,7 +61,7 @@ export function BookmarkUrl({
           'group-focus-visible/list:group-data-[selected=true]/item:flex'
         )}
         size="sm"
-        keys={['Alt', 'Enter']}
+        keys={['⌘', 'Enter']}
       />
       <time
         dateTime={bookmark.createdAt.toISOString()}

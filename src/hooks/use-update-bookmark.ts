@@ -52,14 +52,37 @@ export function useUpdateBookmark(props?: UseUpdateBookmarkProps) {
         ...(data.content !== undefined && { content: data.content })
       };
 
-      trpcUtils.bookmark.getAllByGroup.setData(
-        { groupId: selectedGroup.id },
-        previousBookmarks.map((bk) => {
-          if (bk.id === updatedBookmark.id) return updatedBookmark;
+      if (updatedBookmark.groupId !== selectedGroup.id) {
+        const targetGroupBookmarks = trpcUtils.bookmark.getAllByGroup.getData({
+          groupId: updatedBookmark.groupId
+        });
 
-          return bk;
-        })
-      );
+        if (!targetGroupBookmarks) {
+          console.warn(
+            'No target group bookmarks cache found. Optimistic update skipped.'
+          );
+          return { previousBookmarks };
+        }
+
+        trpcUtils.bookmark.getAllByGroup.setData(
+          { groupId: updatedBookmark.groupId },
+          [updatedBookmark, ...targetGroupBookmarks].sort(
+            (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+          )
+        );
+
+        trpcUtils.bookmark.getAllByGroup.setData(
+          { groupId: selectedGroup.id },
+          previousBookmarks.filter((bk) => bk.id !== updatedBookmark.id)
+        );
+      } else {
+        trpcUtils.bookmark.getAllByGroup.setData(
+          { groupId: selectedGroup.id },
+          [updatedBookmark, ...previousBookmarks].sort(
+            (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+          )
+        );
+      }
 
       setIsEditMode(false);
       props?.onMutate?.();

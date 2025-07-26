@@ -1,3 +1,4 @@
+import { keepPreviousData } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BookmarkSkeleton } from '@/components/bookmark/bookmark-skeleton';
@@ -29,9 +30,14 @@ export function BookmarkList({
   const [isDeleteBookmarkDialogOpen, setIsDeleteBookmarkDialogOpen] =
     useState<boolean>(false);
 
-  const { data: bookmarks, isPending } = api.bookmark.getAllByGroup.useQuery({
-    groupId: selectedGroup.id
-  });
+  const { data: bookmarks, isPending } = api.bookmark.getAllByGroup.useQuery(
+    {
+      groupId: selectedGroup.id
+    },
+    {
+      placeholderData: keepPreviousData
+    }
+  );
 
   const toggleDeleteBookmarkDialog = () => {
     setIsDeleteBookmarkDialogOpen((prev) => !prev);
