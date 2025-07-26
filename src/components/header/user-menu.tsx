@@ -8,6 +8,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { HelpDialog } from '@/components/header/help-dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,9 +29,14 @@ export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState<boolean>(false);
 
   const handleLogOut = async () => {
     await authClient.signOut().then(() => router.push('/'));
+  };
+
+  const toggleHelpDialog = () => {
+    setIsHelpDialogOpen((prev) => !prev);
   };
 
   const handleKeyDown = async (event: React.KeyboardEvent) => {
@@ -40,6 +46,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
     if (KeyboardManager.isKey(event, '1')) {
       event.preventDefault();
+      toggleHelpDialog();
       setIsMenuOpen(false);
       return;
     }
@@ -72,7 +79,7 @@ export function UserMenu({ user }: UserMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onKeyDown={handleKeyDown}>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={toggleHelpDialog}>
           <CircleQuestionMark strokeWidth={2.5} />
           Help
           <DropdownMenuShortcut>
@@ -87,6 +94,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <HelpDialog open={isHelpDialogOpen} onOpenChange={setIsHelpDialogOpen} />
     </DropdownMenu>
   );
 }

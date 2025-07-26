@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BookmarkSkeleton } from '@/components/bookmark/bookmark-skeleton';
 import { DeleteBookmarkDialog } from '@/components/bookmark/delete-bookmark-dialog';
 import { KeyboardManager } from '@/lib/keyboard-manager';
+import { ShortcutManager } from '@/lib/shortcut-manager';
 import { cn } from '@/lib/utils';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
@@ -10,31 +11,6 @@ import { useFocusStore } from '@/stores/focus-store';
 import { api } from '@/trpc/react';
 
 import { BookmarkItem } from './bookmark-item';
-
-const isInRadixPopper = (el: Element | null): boolean => {
-  while (el) {
-    if (el?.hasAttribute?.('data-radix-popper-content-wrapper')) {
-      return true;
-    }
-    el = el.parentElement;
-  }
-  return false;
-};
-
-function shouldIgnoreKeyboardEvent() {
-  const active = document.activeElement;
-  if (
-    active &&
-    ((active.tagName === 'INPUT' && !(active as HTMLInputElement).readOnly) ||
-      active.tagName === 'TEXTAREA' ||
-      (active as HTMLElement).isContentEditable ||
-      isInRadixPopper(active))
-  ) {
-    return true;
-  }
-
-  return false;
-}
 
 export function BookmarkList({
   className,
@@ -48,7 +24,7 @@ export function BookmarkList({
     (state) => state.setSelectedBookmark
   );
 
-  const bookmarkListRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const [isDeleteBookmarkDialogOpen, setIsDeleteBookmarkDialogOpen] =
     useState<boolean>(false);
@@ -62,13 +38,11 @@ export function BookmarkList({
   };
 
   const focusList = useCallback(() => {
-    bookmarkListRef.current?.focus();
+    listRef.current?.focus();
   }, []);
 
   const onKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (shouldIgnoreKeyboardEvent()) return;
-
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (!KeyboardManager.isArrowKey(event) || isEditMode) return;
 
       event.preventDefault();
@@ -95,13 +69,25 @@ export function BookmarkList({
     [bookmarks, focusedIndex, isEditMode, setFocusedIndex, setSelectedBookmark]
   );
 
+  const handleGlobalKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!ShortcutManager.isFocusListShortcut(event) || isEditMode) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      focusList();
+    },
+    [focusList, isEditMode]
+  );
+
   useEffect(() => {
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', handleGlobalKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [onKeyDown]);
+  }, [handleGlobalKeyDown]);
 
   const renderContent = () => {
     if (isPending) {
@@ -134,9 +120,11 @@ export function BookmarkList({
 
   return (
     <div
-      ref={bookmarkListRef}
+      ref={listRef}
+      tabIndex={0}
       data-slot="bookmark-list"
-      className={cn('group/item-list', className)}
+      className={cn('group/list focus-visible:outline-none', className)}
+      onKeyDown={onKeyDown}
       {...props}
     >
       {renderContent()}

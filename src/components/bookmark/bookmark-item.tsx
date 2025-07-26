@@ -20,6 +20,7 @@ import {
 } from '@/hooks/use-update-bookmark';
 import { KeyboardManager } from '@/lib/keyboard-manager';
 import { ShortcutManager } from '@/lib/shortcut-manager';
+import { cn } from '@/lib/utils';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import { useFocusStore } from '@/stores/focus-store';
 import type { Bookmark } from '@/types';
@@ -38,6 +39,7 @@ export function BookmarkItem({
   onDeleteBookmark,
   ...props
 }: BookmarkItemProps) {
+  const isEditingMode = useBookmarkStore((state) => state.isEditMode);
   const focusedIndex = useFocusStore((state) => state.focusedIndex);
   const setSelectedBookmark = useBookmarkStore(
     (state) => state.setSelectedBookmark
@@ -191,6 +193,7 @@ export function BookmarkItem({
       handleOnEdit,
       clearEditMode,
       focusList,
+      onDeleteBookmark,
       handleUpdateBookmark
     ]
   );
@@ -205,30 +208,30 @@ export function BookmarkItem({
     };
   }, [handleOnKeyDown]);
 
+  const classes = cn(
+    'group/item flex w-full items-center gap-4 overflow-hidden rounded-md px-4 py-2 text-left text-sm',
+    'data-[state=open]:bg-accent',
+    'group-focus-visible/list:data-[selected=true]:bg-accent',
+    isEditing && 'bg-accent',
+    isEditingMode && !isEditing && 'blur-xs'
+  );
+
+  const Content = bookmark.type === 'text' ? BookmarkText : BookmarkUrl;
+
   return (
     <ContextMenu modal={false} onOpenChange={onContextMenuOpen}>
       <ContextMenuTrigger asChild>
-        {bookmark.type === 'text' ? (
-          <BookmarkText
-            editInputRef={editInputRef}
-            inputValue={inputValue}
-            onEditInputChange={handleOnInputChange}
-            bookmark={bookmark}
-            isCopying={isCopying}
-            isEditing={isEditing}
-            {...props}
-          />
-        ) : (
-          <BookmarkUrl
-            editInputRef={editInputRef}
-            inputValue={inputValue}
-            onEditInputChange={handleOnInputChange}
-            bookmark={bookmark}
-            isCopying={isCopying}
-            isEditing={isEditing}
-            {...props}
-          />
-        )}
+        <Content
+          data-slot="bookmark-item-content"
+          editInputRef={editInputRef}
+          inputValue={inputValue}
+          bookmark={bookmark}
+          isCopying={isCopying}
+          isEditing={isEditing}
+          className={classes}
+          onEditInputChange={handleOnInputChange}
+          {...props}
+        />
       </ContextMenuTrigger>
       <ContextMenuContent data-slot="bookmark-item-context-menu">
         <ContextMenuItem onClick={handleOnCopy}>

@@ -5,7 +5,6 @@ import { CheckIcon, FileIcon } from 'lucide-react';
 import { Kbd } from '@/components/ui/kbd';
 import { isValidWebColor } from '@/lib/color';
 import { cn } from '@/lib/utils';
-import { useBookmarkStore } from '@/stores/bookmark-store';
 import type { Bookmark } from '@/types';
 
 dayjs.extend(relativeTime);
@@ -28,21 +27,10 @@ export function BookmarkText({
   onEditInputChange,
   ...props
 }: BookmarkTextProps) {
-  const isEditingMode = useBookmarkStore((state) => state.isEditMode);
-
   const isColor = isValidWebColor(inputValue);
 
   return (
-    <div
-      data-slot="bookmark-item-content"
-      className={cn(
-        'group/item flex w-full items-center gap-4 overflow-hidden rounded-md px-4 py-2 text-left text-sm',
-        'data-[selected=true]:bg-accent',
-        isEditing && 'bg-accent',
-        isEditingMode && !isEditing && 'blur-xs'
-      )}
-      {...props}
-    >
+    <div {...props}>
       {isCopying ? (
         <CheckIcon className="text-muted-foreground size-4" />
       ) : isColor ? (
@@ -66,7 +54,10 @@ export function BookmarkText({
         </span>
       )}
       <Kbd
-        className={cn('ml-auto hidden', 'group-data-[selected=true]/item:flex')}
+        className={cn(
+          'ml-auto hidden',
+          'group-focus-visible/list:group-data-[selected=true]/item:flex'
+        )}
         size="sm"
         keys={['Ctrl', 'C']}
       />
@@ -74,7 +65,7 @@ export function BookmarkText({
         dateTime={bookmark.createdAt.toISOString()}
         className={cn(
           'text-muted-foreground ml-auto text-xs',
-          'group-data-[selected=true]/item:hidden'
+          'group-focus-visible/list:group-data-[selected=true]/item:hidden'
         )}
       >
         {dayjs(bookmark.createdAt).fromNow()}

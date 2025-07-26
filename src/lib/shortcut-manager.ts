@@ -5,10 +5,10 @@ export class ShortcutManager {
     return (event.metaKey || event.altKey) && event.key === 'k';
   }
 
-  public static isFocusFirstItemShortcut<T>(
+  public static isFocusListShortcut<T>(
     event: KeyboardEvent | React.KeyboardEvent<T>
   ) {
-    return (event.metaKey || event.altKey) && event.key === 'f';
+    return (event.metaKey || event.altKey) && event.key === 'l';
   }
 
   public static isOpenInNewTabShortcut<T>(
