@@ -20,8 +20,13 @@ export const auth = betterAuth({
   advanced: {
     database: {
       generateId: false
+    },
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: '.memo.directory'
     }
   },
+  trustedOrigins: ['https://memo.directory', 'https://app.memo.directory'],
   databaseHooks: {
     user: {
       create: {

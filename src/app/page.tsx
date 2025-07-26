@@ -9,8 +9,10 @@ export default async function HomePage() {
     headers: await headers()
   });
 
+  console.log(session);
+
   if (session) {
-    redirect('/app');
+    redirect('http://app.localhost:3000');
   }
 
   return (

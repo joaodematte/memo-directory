@@ -8,7 +8,7 @@ export function LogInButton() {
   const handleLogIn = async () => {
     await authClient.signIn.social({
       provider: 'google',
-      callbackURL: '/app'
+      callbackURL: 'https://app.memo.directory'
     });
   };
 
