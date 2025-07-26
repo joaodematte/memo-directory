@@ -9,7 +9,6 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger
 } from '@/components/ui/context-menu';
@@ -253,7 +252,6 @@ export function BookmarkItem({
             <Kbd keys={['D']} />
           </ContextMenuShortcut>
         </ContextMenuItem>
-        <ContextMenuSeparator />
         <MoveToGroupSub />
       </ContextMenuContent>
     </ContextMenu>

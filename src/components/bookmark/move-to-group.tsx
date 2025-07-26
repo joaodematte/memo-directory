@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/context-menu';
 import { Kbd } from '@/components/ui/kbd';
 import { useUpdateBookmark } from '@/hooks/use-update-bookmark';
+import { KeyboardManager } from '@/lib/keyboard-manager';
 import { useGroupStore } from '@/providers/group-store-provider';
 import { useBookmarkStore } from '@/stores/bookmark-store';
 import type { Group } from '@/types';
@@ -45,14 +46,18 @@ function ContextMenuGroupItem({
   );
 }
 
-export function MoveToGroupSub() {
+export function MoveToGroupSub(
+  props: React.ComponentProps<typeof ContextMenuSub>
+) {
   const groups = useGroupStore((state) => state.groups);
   const selectedGroup = useGroupStore((state) => state.selectedGroup);
 
   const filteredGroups = groups.filter((gp) => gp.id !== selectedGroup.id);
 
+  if (filteredGroups.length === 0) return null;
+
   return (
-    <ContextMenuSub>
+    <ContextMenuSub {...props}>
       <ContextMenuSubTrigger>Move to</ContextMenuSubTrigger>
       <ContextMenuSubContent>
         {filteredGroups.map((group, index) => (
