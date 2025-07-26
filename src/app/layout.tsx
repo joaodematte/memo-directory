@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-sync-scripts */
 import { type Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
@@ -63,12 +62,6 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
-        />
-      </head>
       <body>
         <TRPCReactProvider>
           <Providers>{children}</Providers>
