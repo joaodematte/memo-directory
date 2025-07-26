@@ -38,7 +38,7 @@ export function UserMenu({ user }: UserMenuProps) {
   const [isHelpDialogOpen, setIsHelpDialogOpen] = useState<boolean>(false);
 
   const handleLogOut = async () => {
-    await authClient.signOut().then(() => router.push('/'));
+    await authClient.signOut().then(() => router.push('/auth'));
   };
 
   const toggleHelpDialog = () => {
