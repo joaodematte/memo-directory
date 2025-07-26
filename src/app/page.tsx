@@ -1,39 +1,31 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { LogInButton } from '@/components/log-in-button';
+import { Header } from '@/components/header';
+import { MainContent } from '@/components/main-content';
 import { auth } from '@/lib/auth';
+import { GroupStoreProvider } from '@/providers/group-store-provider';
+import { HydrateClient, api } from '@/trpc/server';
 
 export default async function HomePage() {
   const session = await auth.api.getSession({
     headers: await headers()
   });
 
-  if (session) {
-    redirect('/app');
+  if (!session) {
+    redirect('/auth');
   }
 
+  const initialGroups = await api.group.getAllByUser();
+
   return (
-    <div className="mx-auto my-45 w-full max-w-2xl space-y-6 px-6">
-      <section>
-        <h1 className="font-semibold">memo.directory</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Your personal vault for valuable hyperlinks. A simple, no-frills
-          approach to saving and accessing the content that matters most to you.
-        </p>
-      </section>
-      <section>
-        <h1 className="font-semibold">About</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Designed with personal preferences in mind, this tool offers a
-          minimal, keyboard-first experience. It automatically detects input
-          content types and renders links with relevant page metadata. Enjoy
-          fast loading, no onboarding, no tracking, and absolutely no ads.
-        </p>
-      </section>
-      <section>
-        <LogInButton />
-      </section>
-    </div>
+    <HydrateClient>
+      <GroupStoreProvider initialGroups={initialGroups}>
+        <div className="mx-auto w-full max-w-2xl px-6">
+          <Header user={session.user} />
+          <MainContent />
+        </div>
+      </GroupStoreProvider>
+    </HydrateClient>
   );
 }
