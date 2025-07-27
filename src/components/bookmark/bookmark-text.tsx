@@ -50,12 +50,12 @@ export function BookmarkText({
       {isEditing ? (
         <input
           ref={editInputRef}
-          className="field-sizing-content max-w-xs shrink-0 truncate focus-visible:outline-none"
+          className="field-sizing-content max-w-xs truncate focus-visible:outline-none"
           value={inputValue}
           onChange={handleEditInputChange}
         />
       ) : (
-        <span className="max-w-xs shrink-0 truncate">
+        <span className="max-w-xs truncate">
           {isCopying ? 'Copied' : inputValue}
         </span>
       )}
