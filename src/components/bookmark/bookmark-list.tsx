@@ -94,7 +94,7 @@ export function BookmarkList({ filter }: BookmarkListProps) {
 
   const renderContent = () => {
     if (isPending) {
-      return Array.from({ length: 12 }).map((_, i) => (
+      return Array.from({ length: 10 }).map((_, i) => (
         <BookmarkSkeleton key={i} />
       ));
     }

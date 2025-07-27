@@ -38,24 +38,24 @@ export function BookmarkText({
   return (
     <button {...props}>
       {isCopying ? (
-        <CheckIcon className="text-muted-foreground size-4" />
+        <CheckIcon className="text-muted-foreground size-4 shrink-0" />
       ) : isColor ? (
         <div
-          className="size-4 rounded-full"
+          className="size-4 shrink-0 rounded-full"
           style={{ backgroundColor: inputValue }}
         />
       ) : (
-        <FileIcon className="text-muted-foreground size-4" />
+        <FileIcon className="text-muted-foreground size-4 shrink-0" />
       )}
       {isEditing ? (
         <input
           ref={editInputRef}
-          className="field-sizing-content max-w-xs truncate focus-visible:outline-none"
+          className="field-sizing-content max-w-xs shrink-0 truncate focus-visible:outline-none"
           value={inputValue}
           onChange={handleEditInputChange}
         />
       ) : (
-        <span className="max-w-xs truncate">
+        <span className="max-w-xs shrink-0 truncate">
           {isCopying ? 'Copied' : inputValue}
         </span>
       )}
@@ -67,7 +67,7 @@ export function BookmarkText({
       <time
         dateTime={bookmark.createdAt.toISOString()}
         className={cn(
-          'text-muted-foreground ml-auto text-xs',
+          'text-muted-foreground ml-auto shrink-0 text-xs',
           'group-focus-visible/item:hidden'
         )}
       >

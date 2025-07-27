@@ -177,7 +177,10 @@ export function BookmarkInput({
         value={value}
         onChange={handleInputOnChange}
         onKeyDown={handleInputKeyDown}
-        className={cn('pr-16 pl-10', className)}
+        className={cn(
+          'border-border focus-visible:border-border pr-16 pl-10',
+          className
+        )}
         {...props}
       />
       <Kbd

@@ -15,7 +15,7 @@ export function MainContent() {
 
   return (
     <div className="my-24">
-      <div className="px-4">
+      <div className="px-3">
         <BookmarkInput
           value={bookmarkInputValue}
           onValueChange={handleBookmarkInputOnChange}
@@ -31,7 +31,7 @@ export function MainContent() {
         </div>
       </div>
 
-      <ScrollArea className="h-[436px]">
+      <ScrollArea className="h-[440px]">
         <BookmarkList filter={bookmarkInputValue} />
       </ScrollArea>
     </div>

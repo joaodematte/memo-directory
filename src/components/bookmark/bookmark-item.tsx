@@ -230,7 +230,7 @@ export function BookmarkItem({
   };
 
   const classes = cn(
-    'group/item flex w-full items-center gap-4 overflow-hidden rounded-md px-4 py-2 text-left text-sm',
+    'group/item flex w-full items-center gap-4 overflow-hidden rounded-md p-3 text-left text-sm',
     'hover:bg-accent',
     'data-[state=open]:bg-accent',
     'focus-visible:bg-accent focus-visible:outline-none',
